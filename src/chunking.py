@@ -43,19 +43,9 @@ def chunk_file(
     return chunks
 
 
-
-def chunk_file_py(
-    content: str,
-    path: str,
-    max_chunk: int,
-) -> list[Chunk]:
-    """Split Python source into AST-aware chunks.
-
-    Prefer top-level statement boundaries while preserving
-    exact character offsets and the original source text.
-    """
+def chunk_file_py(content: str, path: str, max_chunk: int) -> list[Chunk]:
     if max_chunk <= 0:
-        raise ValueError("max_chunk must be greater than zero")
+        raise ValueError("max_chunk must be positive")
 
     if not content:
         return []
@@ -71,11 +61,30 @@ def chunk_file_py(
     for line in lines:
         offsets.append(offsets[-1] + len(line))
 
-    chunks: list[Chunk] = []
+    boundaries = [0]
 
-    def add_chunk(start: int, end: int) -> None:
-        if start >= end:
-            return
+    for node in tree.body:
+        boundaries.append(offsets[node.lineno - 1])
+
+    boundaries = sorted(set(boundaries + [len(content)]))
+
+    chunks = []
+    start = 0
+
+    while start < len(content):
+        limit = min(start + max_chunk, len(content))
+
+        # Prefer the last AST boundary that fits.
+        possible = [b for b in boundaries if start < b <= limit]
+
+        if possible:
+            end = possible[-1]
+        elif limit == len(content):
+            end = limit
+        else:
+            # If a Python block is too large, prefer a newline.
+            newline = content.rfind("\n", start, limit)
+            end = newline + 1 if newline >= start else limit
 
         chunks.append(
             Chunk(
@@ -87,60 +96,9 @@ def chunk_file_py(
             )
         )
 
-    def split_large(start: int, end: int) -> None:
-        """Split oversized blocks, preferring line boundaries."""
-        while end - start > max_chunk:
-            limit = start + max_chunk
-
-            boundary = content.rfind("\n", start, limit)
-
-            if boundary >= start:
-                boundary += 1
-            else:
-                boundary = limit
-
-            add_chunk(start, boundary)
-            start = boundary
-
-        add_chunk(start, end)
-
-    boundaries: list[int] = [0]
-    print(path)
-    for node in tree.body:
-        if not hasattr(node, "lineno"):
-            print("path", path)
-            continue
-
-        start = offsets[node.lineno - 1]
-
-        boundaries.append(start)
-    boundaries.append(len(content))
-
-    chunk_start = 0
-
-    for i in range(1, len(boundaries)):
-        block_start = boundaries[i - 1]
-        block_end = boundaries[i]
-
-        if block_end - chunk_start <= max_chunk:
-            continue
-
-        # Flush previous complete statements.
-        if block_start > chunk_start:
-            add_chunk(chunk_start, block_start)
-            chunk_start = block_start
-
-        # Oversized statement: split it separately.
-        if block_end - chunk_start > max_chunk:
-            split_large(chunk_start, block_end)
-            chunk_start = block_end
-
-    # Save remaining statements.
-    if chunk_start < len(content):
-        split_large(chunk_start, len(content))
+        start = end
 
     return chunks
-
 
 def store_chunks(
     chunks: list[Chunk],
@@ -155,27 +113,3 @@ def store_chunks(
 
     with file_path.open("w", encoding="utf-8") as file:
         json.dump(serialized_chunks, file, indent=2, ensure_ascii=False)
-
-
-if __name__ == "__main__":
-    # Small example you can run to test the chunking functions.
-    example = '''import os
-
-def hello():
-    print("Hello")
-
-def calculate():
-    return 10 + 20
-'''
-
-    max_chunk = 50
-    result = chunk_file_py(example, "example.py", max_chunk)
-
-    for chunk in result:
-        print(f"\nChunk {chunk.start}:{chunk.end} (size={chunk.size})")
-        print(chunk.content)
-
-    # Basic correctness checks.
-    assert all(chunk.size <= max_chunk for chunk in result)
-    assert all(chunk.size == len(chunk.content) for chunk in result)
-    assert "".join(chunk.content for chunk in result) == example

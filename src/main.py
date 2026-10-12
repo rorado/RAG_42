@@ -23,10 +23,11 @@ def search_in_vllm_files(
                 with open(en, "r") as file:
                     content = file.read()
                 x = chunk_file_py(content, en.path, max_chunk_size)
+                chunks_list.extend(x)
             elif en.is_file() and en.name.endswith((".md")):
                 with open(en, "r") as file:
                     content = file.read()
-                    x = chunk_file(content, en.path, max_chunk_size)
+                x = chunk_file(content, en.path, max_chunk_size)
                 chunks_list.extend(x)
     return chunks_list
 

@@ -1,1 +1,1002 @@
-[]
+[
+  {
+    "id": "34a8229c-daff-4a63-a81b-926163e5f86b",
+    "content": "def main() -> None:\n    print(\"Hello from rag!\")\n",
+    "size": 49,
+    "path": "src/rag/__init__.py",
+    "start": 0,
+    "end": 49
+  },
+  {
+    "id": "e68d0e62-6bc7-4fb3-a59b-e3ab9cf3604b",
+    "content": "\n",
+    "size": 1,
+    "path": "src/rag/exceptions.py",
+    "start": 0,
+    "end": 1
+  },
+  {
+    "id": "3ea0dd4c-6008-4513-ba0c-1c48d0dc1d84",
+    "content": "import os\nimport argparse\n",
+    "size": 26,
+    "path": "src/main.py",
+    "start": 0,
+    "end": 26
+  },
+  {
+    "id": "a5b29d55-50f7-4b8d-bb4a-b5f6de65b72f",
+    "content": "from chunking import chunk_file, chunk_file_py, Ch",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 26,
+    "end": 76
+  },
+  {
+    "id": "67a8927b-18b0-4cdc-8c4f-aa18a010c034",
+    "content": "unk, store_chunks\nimport ast\nimport textwrap\n\n",
+    "size": 46,
+    "path": "src/main.py",
+    "start": 76,
+    "end": 122
+  },
+  {
+    "id": "91a8fdae-1d60-48e6-94d8-d297bb52b232",
+    "content": "parser = argparse.ArgumentParser()\n",
+    "size": 35,
+    "path": "src/main.py",
+    "start": 122,
+    "end": 157
+  },
+  {
+    "id": "67829140-2897-4634-acdc-239376c58718",
+    "content": "parser.add_argument(\"--max_chunk_size\")\n\n",
+    "size": 41,
+    "path": "src/main.py",
+    "start": 157,
+    "end": 198
+  },
+  {
+    "id": "a0ed7ef0-7035-4d3a-80a2-3fe35f285ccc",
+    "content": "MAX_CHUNK_SIZE = 2000\nVLLM_PATH = \"src\"\n\n\n",
+    "size": 42,
+    "path": "src/main.py",
+    "start": 198,
+    "end": 240
+  },
+  {
+    "id": "78cfd850-d0f8-4061-8568-cdf5f984deda",
+    "content": "def search_in_vllm_files(\n",
+    "size": 26,
+    "path": "src/main.py",
+    "start": 240,
+    "end": 266
+  },
+  {
+    "id": "be91c6f1-eb15-4a61-9c7f-b6e51e91249d",
+    "content": "    dir: str = VLLM_PATH, max_chunk_size: int = MA",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 266,
+    "end": 316
+  },
+  {
+    "id": "051d88f5-5383-4677-959e-df924a46c980",
+    "content": "X_CHUNK_SIZE\n) -> list[Chunk]:\n",
+    "size": 31,
+    "path": "src/main.py",
+    "start": 316,
+    "end": 347
+  },
+  {
+    "id": "ed372da2-a55f-4ed1-a0e7-1ac25a76e575",
+    "content": "    chunks_list: list[Chunk] = []\n",
+    "size": 34,
+    "path": "src/main.py",
+    "start": 347,
+    "end": 381
+  },
+  {
+    "id": "27d98168-e88e-484b-8555-79f3bf2c48c2",
+    "content": "    with os.scandir(dir) as entries:\n",
+    "size": 37,
+    "path": "src/main.py",
+    "start": 381,
+    "end": 418
+  },
+  {
+    "id": "fc693840-bbb6-4f44-b59f-9b594f4d00ed",
+    "content": "        for en in entries:\n",
+    "size": 27,
+    "path": "src/main.py",
+    "start": 418,
+    "end": 445
+  },
+  {
+    "id": "f011da20-7b42-47e0-8edd-97a4f92840f7",
+    "content": "            if en.is_dir():\n",
+    "size": 28,
+    "path": "src/main.py",
+    "start": 445,
+    "end": 473
+  },
+  {
+    "id": "e2a5e190-e035-4d36-b5bf-987558128d7c",
+    "content": "                chunks_list.extend(search_in_vllm_",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 473,
+    "end": 523
+  },
+  {
+    "id": "90f7c9cc-3626-4b1c-bea9-4ad7a1209c19",
+    "content": "files(en.path, max_chunk_size))\n",
+    "size": 32,
+    "path": "src/main.py",
+    "start": 523,
+    "end": 555
+  },
+  {
+    "id": "65ac9cc4-0ca5-4844-8f40-e2f1af65f100",
+    "content": "            elif en.is_file() and en.name.endswith",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 555,
+    "end": 605
+  },
+  {
+    "id": "0d410d7c-6d3d-4900-b5fc-5cb56293b9bd",
+    "content": "((\".py\")):\n",
+    "size": 11,
+    "path": "src/main.py",
+    "start": 605,
+    "end": 616
+  },
+  {
+    "id": "7a46184a-3adc-4d7b-afca-32cb9acd3b97",
+    "content": "                with open(en, \"r\") as file:\n",
+    "size": 44,
+    "path": "src/main.py",
+    "start": 616,
+    "end": 660
+  },
+  {
+    "id": "6f8839a6-ab21-4fea-8c59-fd3e46057f78",
+    "content": "                    content = file.read()\n",
+    "size": 42,
+    "path": "src/main.py",
+    "start": 660,
+    "end": 702
+  },
+  {
+    "id": "e9d7fbe9-4227-40cb-97ed-545a9fb7f4a2",
+    "content": "                x = chunk_file_py(content, en.path",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 702,
+    "end": 752
+  },
+  {
+    "id": "21b5d4b0-f1b5-49ae-b6fb-5a27ebed0c68",
+    "content": ", max_chunk_size)\n",
+    "size": 18,
+    "path": "src/main.py",
+    "start": 752,
+    "end": 770
+  },
+  {
+    "id": "ec4d11d6-794f-4f4f-8248-06d4db779294",
+    "content": "                chunks_list.extend(x)\n",
+    "size": 38,
+    "path": "src/main.py",
+    "start": 770,
+    "end": 808
+  },
+  {
+    "id": "000c2dbe-d2eb-4d7f-83d7-f5ae47325ccb",
+    "content": "            elif en.is_file() and en.name.endswith",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 808,
+    "end": 858
+  },
+  {
+    "id": "0b4caebf-1836-4881-bd67-11ae21199383",
+    "content": "((\".md\")):\n",
+    "size": 11,
+    "path": "src/main.py",
+    "start": 858,
+    "end": 869
+  },
+  {
+    "id": "9dc3342a-95f8-4b61-84aa-0989300c4649",
+    "content": "                with open(en, \"r\") as file:\n",
+    "size": 44,
+    "path": "src/main.py",
+    "start": 869,
+    "end": 913
+  },
+  {
+    "id": "a8944a53-cbb9-47c1-9cbf-e98c74183c95",
+    "content": "                    content = file.read()\n",
+    "size": 42,
+    "path": "src/main.py",
+    "start": 913,
+    "end": 955
+  },
+  {
+    "id": "7a555e90-b7f1-4931-94ad-5a871f56e577",
+    "content": "                x = chunk_file(content, en.path, m",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 955,
+    "end": 1005
+  },
+  {
+    "id": "b9f83967-a230-4a78-94fc-2261b13f2dcf",
+    "content": "ax_chunk_size)\n",
+    "size": 15,
+    "path": "src/main.py",
+    "start": 1005,
+    "end": 1020
+  },
+  {
+    "id": "7490617e-0eaf-4a81-af3a-49ce50ca0a63",
+    "content": "                chunks_list.extend(x)\n",
+    "size": 38,
+    "path": "src/main.py",
+    "start": 1020,
+    "end": 1058
+  },
+  {
+    "id": "eada2e1f-30fe-4c5f-9308-48e98905e344",
+    "content": "    return chunks_list\n\n\n",
+    "size": 25,
+    "path": "src/main.py",
+    "start": 1058,
+    "end": 1083
+  },
+  {
+    "id": "4e22a789-f07d-4edf-af06-d26e8e06e6c2",
+    "content": "def test():\n\n    content = \"\"\"\n    def add(a, b):\n",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 1083,
+    "end": 1133
+  },
+  {
+    "id": "09131619-a728-4b8d-a004-fb1dc8cad980",
+    "content": "        return a + b\n\n    def test():\n",
+    "size": 38,
+    "path": "src/main.py",
+    "start": 1133,
+    "end": 1171
+  },
+  {
+    "id": "afb6dcd8-6ce7-47a8-a6bf-8fc331c579e9",
+    "content": "        pass\n    \n    @test\n",
+    "size": 28,
+    "path": "src/main.py",
+    "start": 1171,
+    "end": 1199
+  },
+  {
+    "id": "047a1382-542a-45f3-89f5-3ea33ed49164",
+    "content": "    def multiply(a:int, b):\n        return a * b\n\n",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 1199,
+    "end": 1249
+  },
+  {
+    "id": "f5ae7098-3b0b-4a42-a2a8-fe1f4c6af204",
+    "content": "    \"\"\"\n    content = textwrap.dedent(content)\n",
+    "size": 47,
+    "path": "src/main.py",
+    "start": 1249,
+    "end": 1296
+  },
+  {
+    "id": "ef9bc395-b888-40ee-8fb0-369f59adcd46",
+    "content": "    tree = ast.parse(content)\n\n",
+    "size": 31,
+    "path": "src/main.py",
+    "start": 1296,
+    "end": 1327
+  },
+  {
+    "id": "be089ef6-4831-404f-8284-28de3b94cb33",
+    "content": "    print(ast.dump(tree, indent=4))\n\n\n",
+    "size": 38,
+    "path": "src/main.py",
+    "start": 1327,
+    "end": 1365
+  },
+  {
+    "id": "f7421403-29e2-4890-8ee4-030f44411277",
+    "content": "def main() -> None:\n",
+    "size": 20,
+    "path": "src/main.py",
+    "start": 1365,
+    "end": 1385
+  },
+  {
+    "id": "037d7e45-d668-43a0-af04-2f5e1eb11402",
+    "content": "    args = parser.parse_args()\n",
+    "size": 31,
+    "path": "src/main.py",
+    "start": 1385,
+    "end": 1416
+  },
+  {
+    "id": "b6ad7c0f-e802-42b9-9ad8-d3a5f74c0a6a",
+    "content": "    max_chunk_size = int(args.max_chunk_size if ar",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 1416,
+    "end": 1466
+  },
+  {
+    "id": "77d8e94b-faad-4e36-9d5e-5206fa94ecfc",
+    "content": "gs.max_chunk_size else MAX_CHUNK_SIZE)\n",
+    "size": 39,
+    "path": "src/main.py",
+    "start": 1466,
+    "end": 1505
+  },
+  {
+    "id": "f15cf0bb-c531-47e5-a001-0eb41775c36a",
+    "content": "    if max_chunk_size <= 0:\n",
+    "size": 28,
+    "path": "src/main.py",
+    "start": 1505,
+    "end": 1533
+  },
+  {
+    "id": "861f0e69-ed22-4d43-a695-49b925c4c769",
+    "content": "        raise ValueError(\"max_chunk must be positi",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 1533,
+    "end": 1583
+  },
+  {
+    "id": "bdbc360b-2a6f-457c-bff3-88e59083b046",
+    "content": "ve\")\n\n    try:\n",
+    "size": 15,
+    "path": "src/main.py",
+    "start": 1583,
+    "end": 1598
+  },
+  {
+    "id": "cd8c31a2-63e3-4886-abf1-a39fdbfa6575",
+    "content": "        chunks = search_in_vllm_files(VLLM_PATH, m",
+    "size": 50,
+    "path": "src/main.py",
+    "start": 1598,
+    "end": 1648
+  },
+  {
+    "id": "6ccd1989-1cde-4894-92ba-3ca2cc167ea4",
+    "content": "ax_chunk_size)\n",
+    "size": 15,
+    "path": "src/main.py",
+    "start": 1648,
+    "end": 1663
+  },
+  {
+    "id": "d476ab51-e048-49b1-ba3f-88e2d2fa9ebb",
+    "content": "        store_chunks(chunks, \"data/processed\")\n",
+    "size": 47,
+    "path": "src/main.py",
+    "start": 1663,
+    "end": 1710
+  },
+  {
+    "id": "04391fa6-74e0-4873-8e58-350386e75831",
+    "content": "        # test()\n    except OSError as e:\n",
+    "size": 42,
+    "path": "src/main.py",
+    "start": 1710,
+    "end": 1752
+  },
+  {
+    "id": "e034ac17-5d44-410a-b59f-6a2c51c1aea9",
+    "content": "        print(e)\n\n\nmain()\n",
+    "size": 26,
+    "path": "src/main.py",
+    "start": 1752,
+    "end": 1778
+  },
+  {
+    "id": "39bb6aba-04db-4aa5-a1d6-2f51bd6ff5ec",
+    "content": "\nimport main\n",
+    "size": 13,
+    "path": "src/__main__.py",
+    "start": 0,
+    "end": 13
+  },
+  {
+    "id": "628d65a7-882f-406d-965e-bb88e1dc19cf",
+    "content": "from pathlib import Path\nimport ast\nimport json\n",
+    "size": 48,
+    "path": "src/chunking.py",
+    "start": 0,
+    "end": 48
+  },
+  {
+    "id": "8a5da2f8-1772-41af-add5-d8781c88c536",
+    "content": "import uuid\n\n",
+    "size": 13,
+    "path": "src/chunking.py",
+    "start": 48,
+    "end": 61
+  },
+  {
+    "id": "50b3fe80-b510-4408-9513-5a5a57594c07",
+    "content": "from pydantic import BaseModel, Field\n\n\n",
+    "size": 40,
+    "path": "src/chunking.py",
+    "start": 61,
+    "end": 101
+  },
+  {
+    "id": "7ba9a63a-973e-45f3-ad95-c384c59fe6e6",
+    "content": "class Chunk(BaseModel):\n",
+    "size": 24,
+    "path": "src/chunking.py",
+    "start": 101,
+    "end": 125
+  },
+  {
+    "id": "0715a4f1-8abf-433d-af45-0c48e399b73c",
+    "content": "    \"\"\"Represent a chunk of source text.\"\"\"\n\n",
+    "size": 45,
+    "path": "src/chunking.py",
+    "start": 125,
+    "end": 170
+  },
+  {
+    "id": "5a128469-f30f-4e91-a377-ff2b2ebcea95",
+    "content": "    id: str = Field(default_factory=lambda: str(uu",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 170,
+    "end": 220
+  },
+  {
+    "id": "52c6a79d-a022-4461-b527-da13533153cc",
+    "content": "id.uuid4()))\n    content: str\n    size: int\n",
+    "size": 44,
+    "path": "src/chunking.py",
+    "start": 220,
+    "end": 264
+  },
+  {
+    "id": "51e5b09e-8c92-4d89-aa53-92c1bcd8e58b",
+    "content": "    path: str\n    start: int\n    end: int\n\n\n",
+    "size": 44,
+    "path": "src/chunking.py",
+    "start": 264,
+    "end": 308
+  },
+  {
+    "id": "95aadada-98bc-45b5-9f37-073eaa296644",
+    "content": "def chunk_file(\n    content: str,\n    path: str,\n",
+    "size": 49,
+    "path": "src/chunking.py",
+    "start": 308,
+    "end": 357
+  },
+  {
+    "id": "4bd24d20-dc03-46c8-a5a0-5aee58ea4546",
+    "content": "    max_chunk: int,\n) -> list[Chunk]:\n",
+    "size": 38,
+    "path": "src/chunking.py",
+    "start": 357,
+    "end": 395
+  },
+  {
+    "id": "ea63073a-4989-4c7b-b17d-64b77399e615",
+    "content": "    \"\"\"Split text into fixed-size chunks.\"\"\"\n",
+    "size": 45,
+    "path": "src/chunking.py",
+    "start": 395,
+    "end": 440
+  },
+  {
+    "id": "7a2a2a9d-0a9e-4f06-b992-66df0660893b",
+    "content": "    if max_chunk <= 0:\n",
+    "size": 23,
+    "path": "src/chunking.py",
+    "start": 440,
+    "end": 463
+  },
+  {
+    "id": "0d3a2256-3905-4683-be36-f4c2fb379b8b",
+    "content": "        raise ValueError(\"max_chunk must be greate",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 463,
+    "end": 513
+  },
+  {
+    "id": "ff53573a-d07f-47bb-b7e0-1068891239b4",
+    "content": "r than zero\")\n\n    chunks: list[Chunk] = []\n\n",
+    "size": 45,
+    "path": "src/chunking.py",
+    "start": 513,
+    "end": 558
+  },
+  {
+    "id": "21816023-8c2c-4694-bdad-768d39d93a1a",
+    "content": "    for start in range(0, len(content), max_chunk)",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 558,
+    "end": 608
+  },
+  {
+    "id": "87c4bf50-ef2e-4b40-9e71-ac0e142be8b9",
+    "content": ":\n",
+    "size": 2,
+    "path": "src/chunking.py",
+    "start": 608,
+    "end": 610
+  },
+  {
+    "id": "4da5e243-9b4a-4fd0-9705-1ac8e770dbb5",
+    "content": "        end = min(start + max_chunk, len(content))",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 610,
+    "end": 660
+  },
+  {
+    "id": "77b84d8d-cac6-4074-9a0b-82af8b658e7c",
+    "content": "\n        chunks.append(\n            Chunk(\n",
+    "size": 43,
+    "path": "src/chunking.py",
+    "start": 660,
+    "end": 703
+  },
+  {
+    "id": "efd256d7-cd65-4008-9e2c-0d810fa67594",
+    "content": "                content=content[start:end],\n",
+    "size": 44,
+    "path": "src/chunking.py",
+    "start": 703,
+    "end": 747
+  },
+  {
+    "id": "8a4479cb-9c82-407f-bb30-76b1d3865fbd",
+    "content": "                size=end - start,\n",
+    "size": 34,
+    "path": "src/chunking.py",
+    "start": 747,
+    "end": 781
+  },
+  {
+    "id": "60561119-33de-44a1-b1c5-2af55dced3b3",
+    "content": "                path=path,\n",
+    "size": 27,
+    "path": "src/chunking.py",
+    "start": 781,
+    "end": 808
+  },
+  {
+    "id": "ddeb95f5-45fc-450d-b510-e59b2fe496cd",
+    "content": "                start=start,\n",
+    "size": 29,
+    "path": "src/chunking.py",
+    "start": 808,
+    "end": 837
+  },
+  {
+    "id": "5500a059-481a-4ce8-8b92-638c590787d0",
+    "content": "                end=end,\n            )\n        )\n\n",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 837,
+    "end": 887
+  },
+  {
+    "id": "2d554cd4-7463-4809-9a35-9535dedae836",
+    "content": "    return chunks\n\n\n",
+    "size": 20,
+    "path": "src/chunking.py",
+    "start": 887,
+    "end": 907
+  },
+  {
+    "id": "d5a7c5c9-be28-4f6c-a155-99e2945c5d80",
+    "content": "def chunk_file_py(content: str, path: str, max_chu",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 907,
+    "end": 957
+  },
+  {
+    "id": "60027b3e-fa9a-4b8c-8da2-d0dc1c507a0e",
+    "content": "nk: int) -> list[Chunk]:\n    if max_chunk <= 0:\n",
+    "size": 48,
+    "path": "src/chunking.py",
+    "start": 957,
+    "end": 1005
+  },
+  {
+    "id": "4ef736a3-3f96-4368-9084-83e119086ba5",
+    "content": "        raise ValueError(\"max_chunk must be positi",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1005,
+    "end": 1055
+  },
+  {
+    "id": "5042820b-68b5-4e9e-8ed6-83431b2cdeb5",
+    "content": "ve\")\n\n    if not content:\n        return []\n\n",
+    "size": 45,
+    "path": "src/chunking.py",
+    "start": 1055,
+    "end": 1100
+  },
+  {
+    "id": "c256f05c-ba7d-444d-8632-a8ca9100b8dc",
+    "content": "    try:\n        tree = ast.parse(content)\n",
+    "size": 43,
+    "path": "src/chunking.py",
+    "start": 1100,
+    "end": 1143
+  },
+  {
+    "id": "462a22d6-f76f-410c-bf48-f5f239008b21",
+    "content": "    except (SyntaxError, ValueError):\n",
+    "size": 38,
+    "path": "src/chunking.py",
+    "start": 1143,
+    "end": 1181
+  },
+  {
+    "id": "ca382d38-f7fd-4e5e-a355-c1136d063fea",
+    "content": "        return chunk_file(content, path, max_chunk",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1181,
+    "end": 1231
+  },
+  {
+    "id": "937ba960-53a2-430d-a378-a99b77e29b69",
+    "content": ")\n\n    lines = content.splitlines(keepends=True)\n",
+    "size": 49,
+    "path": "src/chunking.py",
+    "start": 1231,
+    "end": 1280
+  },
+  {
+    "id": "7559409c-f9b3-4f02-83d8-6394b512d44d",
+    "content": "    offsets = [0]\n\n    for line in lines:\n",
+    "size": 42,
+    "path": "src/chunking.py",
+    "start": 1280,
+    "end": 1322
+  },
+  {
+    "id": "28ac3b98-eb7d-41e0-8cb9-bee3c7332cff",
+    "content": "        offsets.append(offsets[-1] + len(line))\n\n",
+    "size": 49,
+    "path": "src/chunking.py",
+    "start": 1322,
+    "end": 1371
+  },
+  {
+    "id": "02a953d2-2fa2-4d6e-8b3b-b7fb3e0d6a21",
+    "content": "    boundaries = [0]\n\n    for node in tree.body:\n",
+    "size": 49,
+    "path": "src/chunking.py",
+    "start": 1371,
+    "end": 1420
+  },
+  {
+    "id": "7a58f2a1-1a31-4f5f-88a6-0627278e4866",
+    "content": "        boundaries.append(offsets[node.lineno - 1]",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1420,
+    "end": 1470
+  },
+  {
+    "id": "9df7178b-0cfe-44f3-a5a5-be940249ff5f",
+    "content": ")\n\n",
+    "size": 3,
+    "path": "src/chunking.py",
+    "start": 1470,
+    "end": 1473
+  },
+  {
+    "id": "8c1e7e93-d56b-4f67-9cdd-3d65af982bf6",
+    "content": "    boundaries = sorted(set(boundaries + [len(cont",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1473,
+    "end": 1523
+  },
+  {
+    "id": "77b3302a-1516-4d38-8f73-ffe67ca2fd2c",
+    "content": "ent)]))\n\n    chunks = []\n    start = 0\n\n",
+    "size": 40,
+    "path": "src/chunking.py",
+    "start": 1523,
+    "end": 1563
+  },
+  {
+    "id": "2e793ac5-bb5b-4370-9088-7738bf206157",
+    "content": "    while start < len(content):\n",
+    "size": 32,
+    "path": "src/chunking.py",
+    "start": 1563,
+    "end": 1595
+  },
+  {
+    "id": "bfc4fc16-356c-4997-9b1e-c6307901a43a",
+    "content": "        limit = min(start + max_chunk, len(content",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1595,
+    "end": 1645
+  },
+  {
+    "id": "32434866-d5bf-47ad-bcd2-704f51727a3d",
+    "content": "))\n\n",
+    "size": 4,
+    "path": "src/chunking.py",
+    "start": 1645,
+    "end": 1649
+  },
+  {
+    "id": "57413159-839a-46ff-b08c-5847f3c954cb",
+    "content": "        # Prefer the last AST boundary that fits.\n",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1649,
+    "end": 1699
+  },
+  {
+    "id": "d73f85ed-935d-4235-8b38-40c702d7f513",
+    "content": "        possible = [b for b in boundaries if start",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1699,
+    "end": 1749
+  },
+  {
+    "id": "bde10fdc-89b5-484e-aa10-2d0fb4656b5c",
+    "content": " < b <= limit]\n\n        if possible:\n",
+    "size": 37,
+    "path": "src/chunking.py",
+    "start": 1749,
+    "end": 1786
+  },
+  {
+    "id": "a3025913-5a1a-47e7-89fc-58a43c467620",
+    "content": "            end = possible[-1]\n",
+    "size": 31,
+    "path": "src/chunking.py",
+    "start": 1786,
+    "end": 1817
+  },
+  {
+    "id": "20319d45-7dcc-4a14-90f0-c80674b594ec",
+    "content": "        elif limit == len(content):\n",
+    "size": 36,
+    "path": "src/chunking.py",
+    "start": 1817,
+    "end": 1853
+  },
+  {
+    "id": "becbba62-19af-4cb7-b9d1-2b56940d3e8f",
+    "content": "            end = limit\n        else:\n",
+    "size": 38,
+    "path": "src/chunking.py",
+    "start": 1853,
+    "end": 1891
+  },
+  {
+    "id": "cf55949b-289a-4277-b9eb-f535b1039c40",
+    "content": "            # If a Python block is too large, pref",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1891,
+    "end": 1941
+  },
+  {
+    "id": "ac697d35-e146-43fa-b71a-8e37ab732d1b",
+    "content": "er a newline.\n",
+    "size": 14,
+    "path": "src/chunking.py",
+    "start": 1941,
+    "end": 1955
+  },
+  {
+    "id": "7a64a5c5-8bf8-4150-8ec9-59b73c8e6585",
+    "content": "            newline = content.rfind(\"\\n\", start, l",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 1955,
+    "end": 2005
+  },
+  {
+    "id": "4eebf09e-2c4a-4bb7-8401-45221c48a48b",
+    "content": "imit)\n",
+    "size": 6,
+    "path": "src/chunking.py",
+    "start": 2005,
+    "end": 2011
+  },
+  {
+    "id": "bbea7129-463f-4a8c-9dc0-8737ce92777e",
+    "content": "            end = newline + 1 if newline >= start ",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2011,
+    "end": 2061
+  },
+  {
+    "id": "b592b228-65e2-40d0-8f56-726ad5dcbce6",
+    "content": "else limit\n\n        chunks.append(\n",
+    "size": 35,
+    "path": "src/chunking.py",
+    "start": 2061,
+    "end": 2096
+  },
+  {
+    "id": "56a1ad8d-a6c5-4965-a74f-21d3ffcbb33e",
+    "content": "            Chunk(\n",
+    "size": 19,
+    "path": "src/chunking.py",
+    "start": 2096,
+    "end": 2115
+  },
+  {
+    "id": "9e081c59-7442-4232-bb5d-5bdf47185a56",
+    "content": "                content=content[start:end],\n",
+    "size": 44,
+    "path": "src/chunking.py",
+    "start": 2115,
+    "end": 2159
+  },
+  {
+    "id": "f972b68f-e657-454c-8fc7-8a782036bb12",
+    "content": "                size=end - start,\n",
+    "size": 34,
+    "path": "src/chunking.py",
+    "start": 2159,
+    "end": 2193
+  },
+  {
+    "id": "8323c89f-bb95-4feb-a1ba-89f9ff8ebb84",
+    "content": "                path=path,\n",
+    "size": 27,
+    "path": "src/chunking.py",
+    "start": 2193,
+    "end": 2220
+  },
+  {
+    "id": "3d51e1b6-4b10-4551-9a44-7bae98ed0ecb",
+    "content": "                start=start,\n",
+    "size": 29,
+    "path": "src/chunking.py",
+    "start": 2220,
+    "end": 2249
+  },
+  {
+    "id": "1d6fdf29-6c89-4450-a5a8-9fa27b54a58e",
+    "content": "                end=end,\n            )\n        )\n\n",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2249,
+    "end": 2299
+  },
+  {
+    "id": "ccc43de3-6dd7-49af-b007-9aab738143c8",
+    "content": "        start = end\n\n    return chunks\n\n",
+    "size": 40,
+    "path": "src/chunking.py",
+    "start": 2299,
+    "end": 2339
+  },
+  {
+    "id": "90e8abd2-3b5b-4634-a075-bd8c4f21b792",
+    "content": "def store_chunks(\n    chunks: list[Chunk],\n",
+    "size": 43,
+    "path": "src/chunking.py",
+    "start": 2339,
+    "end": 2382
+  },
+  {
+    "id": "c6bb250e-5c5c-46c3-9d58-32cc52afe3a1",
+    "content": "    folder_path: str = \"data/processed\",\n",
+    "size": 41,
+    "path": "src/chunking.py",
+    "start": 2382,
+    "end": 2423
+  },
+  {
+    "id": "b1157c9b-bda9-46dd-aaf8-ea2460368aac",
+    "content": ") -> None:\n    \"\"\"Write chunks to a JSON file.\"\"\"\n",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2423,
+    "end": 2473
+  },
+  {
+    "id": "facb2289-13df-4d3b-8472-1715185bed4e",
+    "content": "    folder = Path(folder_path)\n",
+    "size": 31,
+    "path": "src/chunking.py",
+    "start": 2473,
+    "end": 2504
+  },
+  {
+    "id": "10cc3de7-cb7d-4108-a2e6-4d0c8332dfae",
+    "content": "    folder.mkdir(parents=True, exist_ok=True)\n\n",
+    "size": 47,
+    "path": "src/chunking.py",
+    "start": 2504,
+    "end": 2551
+  },
+  {
+    "id": "40aa41f1-1d2e-43fb-80b3-1db7ce5ef06a",
+    "content": "    file_path = folder / \"chunks.json\"\n",
+    "size": 39,
+    "path": "src/chunking.py",
+    "start": 2551,
+    "end": 2590
+  },
+  {
+    "id": "2619f34e-96dd-40fd-bc93-1e3ab14b2f87",
+    "content": "    serialized_chunks = [chunk.model_dump() for ch",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2590,
+    "end": 2640
+  },
+  {
+    "id": "e10c2a49-5bf3-46a2-aeb9-c5a80b188a1f",
+    "content": "unk in chunks]\n\n",
+    "size": 16,
+    "path": "src/chunking.py",
+    "start": 2640,
+    "end": 2656
+  },
+  {
+    "id": "094336da-0c40-4a9b-bb37-22eac055d975",
+    "content": "    with file_path.open(\"w\", encoding=\"utf-8\") as ",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2656,
+    "end": 2706
+  },
+  {
+    "id": "34407a61-ee91-4a6f-804f-7a257d0f9427",
+    "content": "file:\n",
+    "size": 6,
+    "path": "src/chunking.py",
+    "start": 2706,
+    "end": 2712
+  },
+  {
+    "id": "0c4844d7-e58e-476f-a909-a3d8f9ef26bb",
+    "content": "        json.dump(serialized_chunks, file, indent=",
+    "size": 50,
+    "path": "src/chunking.py",
+    "start": 2712,
+    "end": 2762
+  },
+  {
+    "id": "ff459c6e-f988-4145-a7b8-1766c88bc4a5",
+    "content": "2, ensure_ascii=False)\n",
+    "size": 23,
+    "path": "src/chunking.py",
+    "start": 2762,
+    "end": 2785
+  }
+]
