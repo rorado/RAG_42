@@ -4,6 +4,7 @@ from chunking import chunk_file, chunk_file_py, Chunk, store_chunks
 from rich.console import Console
 from bm25 import BM25Search
 from pathlib import Path
+from llm import LLM
 import json
 
 
@@ -14,12 +15,23 @@ parser = argparse.ArgumentParser()
 subparser = parser.add_subparsers(dest="command")
 search_parser = subparser.add_parser("search")
 search_parser.add_argument("query")
-search_parser.add_argument("--k", type=int, default=5)
+search_parser.add_argument("-k", type=int, default=5)
 
+# answer
+answer_parser = subparser.add_parser("answer")
+answer_parser.add_argument("query")
+answer_parser.add_argument("-k", type=int, default=5)
 
 # index
 index_parser = subparser.add_parser("index")
-index_parser.add_argument("--max_chunk_size", type=int, default=2000)
+index_parser.add_argument("-max_chunk_size", type=int, default=2000)
+
+# answer_dataset
+dataset_parser = subparser.add_parser("answer_dataset")
+dataset_parser.add_argument("--k", type=int, default=5)
+dataset_parser.add_argument("-student_search_results_path")
+dataset_parser.add_argument("-save_directory")
+
 
 
 MAX_CHUNK_SIZE = 2000
@@ -99,6 +111,31 @@ def main() -> None:
             console.print(f"Start: {chunk.start}")
             console.print(f"End: {chunk.end}")
             console.print(f"Content:\n{chunk.content}")
+
+    elif args.command == "answer":
+        if args.k <= 0:
+            raise ValueError("k must be greater than 0")
+
+        chunks = load_chunks()
+
+        bm25 = BM25Search()
+        bm25.index(chunks)
+
+        results = bm25.search(args.query, args.k)
+
+        if not results:
+            console.print("[yellow]No sources found[/yellow]")
+            return
+
+        context = "\n\n".join(
+            chunk.content for chunk in results
+        )
+
+        llm = LLM()
+        answer = llm.answer(args.query, context)
+
+        console.print(f"[bold green]Answer:[/bold green]")
+        print(answer)
 
 
 
