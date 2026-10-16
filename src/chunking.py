@@ -7,7 +7,6 @@ from pydantic import BaseModel, Field
 
 
 class Chunk(BaseModel):
-    """Represent a chunk of source text."""
 
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     content: str
@@ -22,14 +21,25 @@ def chunk_file(
     path: str,
     max_chunk: int,
 ) -> list[Chunk]:
-    """Split text into fixed-size chunks."""
+
     if max_chunk <= 0:
         raise ValueError("max_chunk must be greater than zero")
 
     chunks: list[Chunk] = []
+    start = 0
 
-    for start in range(0, len(content), max_chunk):
+    while start < len(content):
         end = min(start + max_chunk, len(content))
+
+        if end < len(content):
+            newline = content.rfind("\n", start, end)
+            space = content.rfind(" ", start, end)
+
+            if newline != -1:
+                end = newline + 1
+            elif space != -1:
+                end = space + 1
+
         chunks.append(
             Chunk(
                 content=content[start:end],
@@ -39,6 +49,8 @@ def chunk_file(
                 end=end,
             )
         )
+
+        start = end
 
     return chunks
 
@@ -74,7 +86,6 @@ def chunk_file_py(content: str, path: str, max_chunk: int) -> list[Chunk]:
     while start < len(content):
         limit = min(start + max_chunk, len(content))
 
-        # Prefer the last AST boundary that fits.
         possible = [b for b in boundaries if start < b <= limit]
 
         if possible:
@@ -82,7 +93,6 @@ def chunk_file_py(content: str, path: str, max_chunk: int) -> list[Chunk]:
         elif limit == len(content):
             end = limit
         else:
-            # If a Python block is too large, prefer a newline.
             newline = content.rfind("\n", start, limit)
             end = newline + 1 if newline >= start else limit
 
