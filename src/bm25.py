@@ -8,13 +8,14 @@ def tokenize(text: str) -> list[str]:
 
 
 class BM25Search:
-    def __init__(self, chunks: list[Chunk]):
+
+    def index(self, chunks: list[Chunk]):
         self.chunks = chunks
 
         corpus = [tokenize(chunk.content) for chunk in chunks]
-        print(corpus)
 
         self.bm25 = BM25Okapi(corpus) if corpus else None
+
 
     def search(self, query: str, top_k: int = 5) -> list[Chunk]:
         if self.bm25 is None or top_k <= 0:
@@ -35,3 +36,31 @@ class BM25Search:
             for i in indices[:top_k]
             if scores[i] > 0
         ]
+
+
+# texts = [
+#     "",
+#     "user login authentication",
+#     "database connection postgres",
+#     "python cache management",
+#     "network request response",
+# ]
+
+# chunks = [
+#     Chunk(
+#         id=str(i),
+#         content=text,
+#         size=len(text),
+#         path="test.py",
+#         start=0,
+#         end=len(text),
+#     )
+#     for i, text in enumerate(texts)
+# ]
+
+# engine = BM25Search(chunks)
+
+# results = engine.search("cache", top_k=2)
+
+# for chunk in results:
+#     print(chunk.content)
