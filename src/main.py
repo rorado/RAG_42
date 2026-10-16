@@ -1,14 +1,31 @@
 import os
 import argparse
 from chunking import chunk_file, chunk_file_py, Chunk, store_chunks
-import ast
-import textwrap
+from rich.console import Console
+from bm25 import BM25Search
+from pathlib import Path
+import json
+
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--max_chunk_size")
+
+
+# search
+subparser = parser.add_subparsers(dest="command")
+search_parser = subparser.add_parser("search")
+search_parser.add_argument("query")
+search_parser.add_argument("--k", type=int, default=5)
+
+
+# index
+index_parser = subparser.add_parser("index")
+index_parser.add_argument("--max_chunk_size", type=int, default=2000)
+
 
 MAX_CHUNK_SIZE = 2000
-VLLM_PATH = "src"
+VLLM_PATH = "data/raw"
+
+error_console = Console(stderr=True)
 
 
 def search_in_vllm_files(
@@ -32,38 +49,61 @@ def search_in_vllm_files(
     return chunks_list
 
 
-def test():
+def load_chunks(
+    folder_path: str = "data/processed",
+) -> list[Chunk]:
+    file_path = Path(folder_path) / "chunks.json"
 
-    content = """
-    def add(a, b):
-        return a + b
+    with file_path.open("r", encoding="utf-8") as file:
+        data = json.load(file)
 
-    def test():
-        pass
-    
-    @test
-    def multiply(a:int, b):
-        return a * b
-
-    """
-    content = textwrap.dedent(content)
-    tree = ast.parse(content)
-
-    print(ast.dump(tree, indent=4))
+    return [Chunk.model_validate(item) for item in data]
 
 
 def main() -> None:
     args = parser.parse_args()
-    max_chunk_size = int(args.max_chunk_size if args.max_chunk_size else MAX_CHUNK_SIZE)
-    if max_chunk_size <= 0:
-        raise ValueError("max_chunk must be positive")
+    console = Console()
 
-    try:
+    if args.command == "index":
+        max_chunk_size = args.max_chunk_size
+
+        if max_chunk_size <= 0:
+            raise ValueError("max_chunk_size must be greater than 0")
+
         chunks = search_in_vllm_files(VLLM_PATH, max_chunk_size)
         store_chunks(chunks, "data/processed")
-        # test()
-    except OSError as e:
-        print(e)
+
+        console.print(
+            f"[bold green]Indexed {len(chunks)} chunks[/bold green]"
+        )
+
+    elif args.command == "search":
+        if args.k <= 0:
+            raise ValueError("k must be greater than 0")
+
+        chunks = load_chunks()
+
+        bm25 = BM25Search()
+        bm25.index(chunks)
+
+        results = bm25.search(args.query, args.k)
+
+        console.print(
+            f"[bold yellow]Question:[/bold yellow] {args.query}"
+        )
+        console.print(f"[cyan]Top K:[/cyan] {args.k}")
+
+        for chunk in results:
+            console.print(f"\n[green]Path:[/green] {chunk.path}")
+            console.print(f"Size: {chunk.size}")
+            console.print(f"Start: {chunk.start}")
+            console.print(f"End: {chunk.end}")
+            console.print(f"Content:\n{chunk.content}")
 
 
-main()
+
+
+try:
+    main()
+except Exception as e:
+    error_console.print(f"[bold red]Error: {e}[/bold red]")
