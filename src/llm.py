@@ -1,6 +1,4 @@
 from transformers import pipeline
-from pprint import pprint
-
 
 
 class LLM:
@@ -24,7 +22,6 @@ class LLM:
                     2. Do not invent information not found in the context.
                     3. Answer the exact question directly.
                     4. If the context is insufficient, say you don't know.
-                    5 speack in arabic
                     Context:
                     {context}
 
@@ -43,5 +40,4 @@ class LLM:
             },
         )
 
-        pprint(output, sort_dicts=False)
         return output[0]["generated_text"][-1]["content"]

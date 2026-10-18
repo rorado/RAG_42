@@ -6,25 +6,28 @@ from bm25 import BM25Search
 from pathlib import Path
 from llm import LLM
 import json
+from semantic_search import SemanticSearch
 
 
 parser = argparse.ArgumentParser()
 
 
-# search
 subparser = parser.add_subparsers(dest="command")
+
+
+# search
 search_parser = subparser.add_parser("search")
 search_parser.add_argument("query")
 search_parser.add_argument("-k", type=int, default=5)
+
+# index
+index_parser = subparser.add_parser("index")
+index_parser.add_argument("-max_chunk_size", type=int, default=2000)
 
 # answer
 answer_parser = subparser.add_parser("answer")
 answer_parser.add_argument("query")
 answer_parser.add_argument("-k", type=int, default=5)
-
-# index
-index_parser = subparser.add_parser("index")
-index_parser.add_argument("-max_chunk_size", type=int, default=2000)
 
 # answer_dataset
 dataset_parser = subparser.add_parser("answer_dataset")
@@ -99,7 +102,8 @@ def main() -> None:
         bm25.index(chunks)
 
         results = bm25.search(args.query, args.k)
-
+        em = SemanticSearch()
+        em.index(chunks)
         console.print(
             f"[bold yellow]Question:[/bold yellow] {args.query}"
         )
