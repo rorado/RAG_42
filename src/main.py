@@ -6,8 +6,7 @@ from bm25 import BM25Search
 from pathlib import Path
 from llm import LLM
 import json
-from classes import MinimalSource
-from semantic_search import SemanticSearch
+from search_dataset import search_dataset
 
 
 parser = argparse.ArgumentParser()
@@ -22,25 +21,25 @@ search_parser.add_argument("query")
 search_parser.add_argument("--k", type=int, default=5)
 
 # search_dataset
-search_dataset_parser = subparser.add_parser("search_dataset")
-search_dataset_parser.add_argument("--dataset_path")
-search_dataset_parser.add_argument("--k", type=int, default=5)
-search_dataset_parser.add_argument("--save_directory")
+dataset_parser = subparser.add_parser("search_dataset")
+dataset_parser.add_argument("--dataset_path", required=True)
+dataset_parser.add_argument("--save_directory", required=True)
+dataset_parser.add_argument("--k", type=int, default=5)
 
 # index
 index_parser = subparser.add_parser("index")
-index_parser.add_argument("-max_chunk_size", type=int, default=2000)
+index_parser.add_argument("--max_chunk_size", type=int, default=2000)
 
 # answer
 answer_parser = subparser.add_parser("answer")
 answer_parser.add_argument("query")
-answer_parser.add_argument("-k", type=int, default=5)
+answer_parser.add_argument("--k", type=int, default=5)
 
 # answer_dataset
 dataset_parser = subparser.add_parser("answer_dataset")
 dataset_parser.add_argument("--k", type=int, default=5)
-dataset_parser.add_argument("-student_search_results_path")
-dataset_parser.add_argument("-save_directory")
+dataset_parser.add_argument("--student_search_results_path")
+dataset_parser.add_argument("--save_directory")
 
 
 
@@ -100,8 +99,19 @@ def main() -> None:
         )
 
     elif args.command == "search_dataset":
-        print("hello")
-        print(sources[:2])
+        chunks = load_chunks()
+
+        bm25 = BM25Search()
+        bm25.index(chunks)
+
+        output_path = search_dataset(
+            dataset_path=args.dataset_path,
+            save_directory=args.save_directory,
+            bm25=bm25,
+            k=args.k,
+        )
+
+        print(f"Saved to: {output_path}")
 
     elif args.command == "search":
         if args.k <= 0:
@@ -113,15 +123,15 @@ def main() -> None:
         bm25.index(chunks)
 
         results = bm25.search(args.query, args.k)
-        sources = [
-            MinimalSource(
-                file_path=chunk.path,
-                first_character_index=chunk.start,
-                last_character_index=chunk.end,
-            )
-            for chunk in results
-        ]
-        print("sources",sources)
+        # sources = [
+        #     MinimalSource(
+        #         file_path=chunk.path,
+        #         first_character_index=chunk.start,
+        #         last_character_index=chunk.end,
+        #     )
+        #     for chunk in results
+        # ]
+        # print("sources",sources)
 
         # chunks = load_chunks()
         # console.print(
