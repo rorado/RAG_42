@@ -54,6 +54,3 @@ class SemanticSearch:
 
 
 text = "How to free GPU memory?"
-
-
-

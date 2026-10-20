@@ -6,6 +6,7 @@ from bm25 import BM25Search
 from pathlib import Path
 from llm import LLM
 import json
+from classes import MinimalSource
 from semantic_search import SemanticSearch
 
 
@@ -18,7 +19,13 @@ subparser = parser.add_subparsers(dest="command")
 # search
 search_parser = subparser.add_parser("search")
 search_parser.add_argument("query")
-search_parser.add_argument("-k", type=int, default=5)
+search_parser.add_argument("--k", type=int, default=5)
+
+# search_dataset
+search_dataset_parser = subparser.add_parser("search_dataset")
+search_dataset_parser.add_argument("--dataset_path")
+search_dataset_parser.add_argument("--k", type=int, default=5)
+search_dataset_parser.add_argument("--save_directory")
 
 # index
 index_parser = subparser.add_parser("index")
@@ -92,6 +99,10 @@ def main() -> None:
             f"[bold green]Indexed {len(chunks)} chunks[/bold green]"
         )
 
+    elif args.command == "search_dataset":
+        print("hello")
+        print(sources[:2])
+
     elif args.command == "search":
         if args.k <= 0:
             raise ValueError("k must be greater than 0")
@@ -102,19 +113,28 @@ def main() -> None:
         bm25.index(chunks)
 
         results = bm25.search(args.query, args.k)
-        em = SemanticSearch()
-        em.index(chunks)
-        console.print(
-            f"[bold yellow]Question:[/bold yellow] {args.query}"
-        )
-        console.print(f"[cyan]Top K:[/cyan] {args.k}")
+        sources = [
+            MinimalSource(
+                file_path=chunk.path,
+                first_character_index=chunk.start,
+                last_character_index=chunk.end,
+            )
+            for chunk in results
+        ]
+        print("sources",sources)
 
-        for chunk in results:
-            console.print(f"\n[green]Path:[/green] {chunk.path}")
-            console.print(f"Size: {chunk.size}")
-            console.print(f"Start: {chunk.start}")
-            console.print(f"End: {chunk.end}")
-            console.print(f"Content:\n{chunk.content}")
+        # chunks = load_chunks()
+        # console.print(
+        #     f"[bold yellow]Question:[/bold yellow] {args.query}"
+        # )
+        # console.print(f"[cyan]Top K:[/cyan] {args.k}")
+
+        # for chunk in results:
+        #     console.print(f"\n[green]Path:[/green] {chunk.path}")
+        #     console.print(f"Size: {chunk.size}")
+        #     console.print(f"Start: {chunk.start}")
+        #     console.print(f"End: {chunk.end}")
+        #     console.print(f"Content:\n{chunk.content}")
 
     elif args.command == "answer":
         if args.k <= 0:
