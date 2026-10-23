@@ -25,20 +25,27 @@ def chunk_file(
     if max_chunk <= 0:
         raise ValueError("max_chunk must be greater than zero")
 
-    chunks: list[Chunk] = []
+    if not content:
+        return []
+
+    chunks = []
     start = 0
 
     while start < len(content):
         end = min(start + max_chunk, len(content))
 
         if end < len(content):
-            newline = content.rfind("\n", start, end)
-            space = content.rfind(" ", start, end)
+            # Prefer splitting within the last 30% of the chunk
+            min_end = start + int(max_chunk * 0.7)
 
-            if newline != -1:
-                end = newline + 1
-            elif space != -1:
-                end = space + 1
+            if min_end < end:
+                newline = content.rfind("\n", min_end, end)
+                space = content.rfind(" ", min_end, end)
+
+                if newline != -1:
+                    end = newline + 1
+                elif space != -1:
+                    end = space + 1
 
         chunks.append(
             Chunk(
@@ -90,8 +97,6 @@ def chunk_file_py(content: str, path: str, max_chunk: int) -> list[Chunk]:
 
         if possible:
             end = possible[-1]
-        elif limit == len(content):
-            end = limit
         else:
             newline = content.rfind("\n", start, limit)
             end = newline + 1 if newline >= start else limit
