@@ -20,8 +20,7 @@ class LLM:
                     Rules:
                     1. Give a clear and understandable answer.
                     2. Do not invent information not found in the context.
-                    3. Answer the exact question directly.
-                    4. If the context is insufficient, say you don't know.
+                    3. Answer the exact question directly from contents.
                     Context:
                     {context}
 
@@ -33,7 +32,7 @@ class LLM:
 
         output = self.generator(
             messages,
-            max_new_tokens=256,
+            max_new_tokens=512,
             do_sample=False,
             tokenizer_encode_kwargs={
                 "enable_thinking": False,
