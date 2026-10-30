@@ -9,8 +9,8 @@ QUERY ?=
 DATASET_PATH ?= data/datasets/UnansweredQuestions/dataset_docs_public.json
 GROUND_TRUTH ?= data/datasets/AnsweredQuestions/dataset_docs_public.json
 
-SEARCH_DIR ?= data/output/search_results/UnansweredQuestions
-ANSWER_DIR ?= data/output/search_results_and_answer/UnansweredQuestions
+SEARCH_DIR_SAVE ?= data/output/search_results/UnansweredQuestions
+ANSWER_DIR_SAVE ?= data/output/search_results/AnsweredQuestions
 
 SEARCH_RESULTS ?= $(SEARCH_DIR)/$(notdir $(DATASET_PATH))
 
@@ -47,7 +47,7 @@ search_dataset:
 	$(PYTHON) search_dataset \
 		--dataset_path "$(DATASET_PATH)" \
 		--k $(K) \
-		--save_directory "$(SEARCH_DIR)"
+		--save_directory "$(SEARCH_DIR_SAVE)"
 
 
 answer:
@@ -58,7 +58,7 @@ answer:
 answer_dataset:
 	$(PYTHON) answer_dataset \
 		--student_search_results_path "$(SEARCH_RESULTS)" \
-		--save_directory "$(ANSWER_DIR)"
+		--save_directory "$(ANSWER_DIR_SAVE)"
 
 
 evaluate:
