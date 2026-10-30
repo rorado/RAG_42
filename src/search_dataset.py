@@ -2,34 +2,10 @@ import json
 from pathlib import Path
 from bm25 import BM25Search
 from pydantic import BaseModel
+from .classes import MinimalSearchResults, InvalidFormatError, MinimalSource, StudentSearchResults
 
 
-class MinimalSource(BaseModel):
-    file_path: str
-    first_character_index: int
-    last_character_index: int
 
-class MinimalSearchResults(BaseModel):
-    question_id: str
-    question: str
-    retrieved_sources: list[MinimalSource]
-
-
-class MinimalAnswer(MinimalSearchResults):
-    answer: str
-
-
-class StudentSearchResults(BaseModel):
-    search_results: list[MinimalSearchResults]
-    k: int
-
-
-class StudentSearchResultsAndAnswer(BaseModel):
-    search_results: list[MinimalAnswer]
-    k: int
-
-class ParceError(Exception):
-    pass
 def search_dataset(dataset_path: str, save_directory:str, bm25:BM25Search, k: int=5):
     with open(dataset_path, encoding="utf-8") as f:
         data = json.load(f)
@@ -38,9 +14,9 @@ def search_dataset(dataset_path: str, save_directory:str, bm25:BM25Search, k: in
 
     for item in data["rag_questions"]:
         if "question" not in item:
-            raise ParceError(f"question not exit in {dataset_path}") 
+            raise InvalidFormatError(f"question not exit in {dataset_path}") 
         elif "question_id" not in item:
-            raise ParceError(f"question not exit in {dataset_path}") 
+            raise InvalidFormatError(f"question not exit in {dataset_path}") 
         question = item["question"]
 
         chunks = bm25.search(question, top_k=k)

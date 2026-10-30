@@ -1,0 +1,59 @@
+import json
+from pathlib import Path
+from bm25 import BM25Search
+from .llm import LLM
+from .classes import InvalidFormatError, MinimalAnswer, StudentSearchResults, MinimalSource, StudentSearchResultsAndAnswer
+
+def run_answer_dataset(
+            dataset_path:str,
+            save_directory:str,
+            k:int
+        ):
+    with open(dataset_path, encoding="utf-8") as f:
+        data = StudentSearchResults.model_validate_json(
+            Path(dataset_path).read_text(encoding="utf-8")
+        )
+
+
+        llm = LLM()
+        answers: list[MinimalAnswer] = []
+        answer:list[MinimalAnswer] = []
+    
+        for item in data["search_results"]:
+            if "question" not in item:
+                raise InvalidFormatError(f"question not exit in {dataset_path}") 
+            elif "question_id" not in item:
+                raise InvalidFormatError(f"question not exit in {dataset_path}") 
+            question = item["question"]
+            for source in item["retrieved_sources"]:
+                content = Path(source.file_path).read_text(encoding="utf-8")
+            # chunks = bm25.search(question, top_k=k)
+    
+            # sources = [
+            #     MinimalSource(
+            #         file_path=chunk.path,
+            #         first_character_index=chunk.start,
+            #         last_character_index=chunk.end,
+            #     )
+            #     for chunk in chunks
+            # ]
+            # search_results.append(
+            #     MinimalAnswer(
+            #         question_id=item["question_id"],
+            #         question=question,
+            #         retrieved_sources=sources,
+            #         answer="hello from test"
+            #     )
+            # )
+    
+        output = StudentSearchResultsAndAnswer(
+            search_results = search_results,
+            k=k,
+        )
+        output_path = Path(save_directory) / Path(dataset_path).name
+        output_path.parent.mkdir(parents=True, exist_ok=True)
+    
+        with open(output_path, "w", encoding="utf-8") as f:
+            f.write(output.model_dump_json(indent=2))
+    
+        return output_path

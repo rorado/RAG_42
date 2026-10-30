@@ -9,7 +9,7 @@ from .chunking import chunk_file, chunk_file_py, Chunk, store_chunks
 from .bm25 import BM25Search
 from .llm import LLM
 from .search_dataset import search_dataset as run_search_dataset
-
+from .answer_dataset import run_answer_dataset
 
 MAX_CHUNK_SIZE = 2000
 VLLM_PATH = "data/raw"
@@ -157,6 +157,17 @@ def answer_dataset(
     save_directory: str,
     k: int = 5,
 ):
-    raise NotImplementedError(
-        "answer_dataset has not been implemented yet"
+    if k <= 0:
+        raise ValueError("k must be greater than 0")
+
+    bm25 = create_bm25()
+    
+    output_path = run_answer_dataset(
+        dataset_path=student_search_results_path,
+        save_directory=save_directory,
+        bm25=bm25,
+        k=k,
     )
+    
+    console.print(f"[green]Saved to:[/green] {output_path}")
+
