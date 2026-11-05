@@ -90,8 +90,7 @@ def run_evaluate(
         raise ValueError("No questions could be evaluated.")
 
     average_recall = total_recall / evaluated
-
-    # print(f"Questions evaluated: {evaluated}")
-    # print(f"Recall@{results.k}: {average_recall:.2%}")
+    print(f"Questions evaluated: {evaluated}")
+    print(f"Recall@{results.k}: {average_recall:.2%}")
 
     return average_recall
