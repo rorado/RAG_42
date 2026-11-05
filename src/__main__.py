@@ -19,7 +19,6 @@ def main():
         "answer": answer,
         "answer_dataset": answer_dataset,
         "evaluate": evaluate
-
     })
 
 
