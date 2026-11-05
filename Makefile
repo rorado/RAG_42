@@ -9,10 +9,11 @@ QUERY ?=
 DATASET_PATH ?= data/datasets/UnansweredQuestions/dataset_docs_public.json
 GROUND_TRUTH ?= data/datasets/AnsweredQuestions/dataset_docs_public.json
 
+
 SEARCH_DIR_SAVE ?= data/output/search_results/UnansweredQuestions
 ANSWER_DIR_SAVE ?= data/output/search_results/AnsweredQuestions
 
-SEARCH_RESULTS ?= $(SEARCH_DIR)/$(notdir $(DATASET_PATH))
+SEARCH_RESULTS ?= $(SEARCH_DIR_SAVE)/$(notdir $(DATASET_PATH))
 
 
 .PHONY: help install index search search_dataset answer answer_dataset evaluate clean

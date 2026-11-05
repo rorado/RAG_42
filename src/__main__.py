@@ -7,6 +7,7 @@ from .main import (
     search_dataset,
     answer,
     answer_dataset,
+    evaluate
 )
 
 
@@ -17,6 +18,8 @@ def main():
         "search_dataset": search_dataset,
         "answer": answer,
         "answer_dataset": answer_dataset,
+        "evaluate": evaluate
+
     })
 
 

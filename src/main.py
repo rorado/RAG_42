@@ -10,6 +10,7 @@ from .bm25 import BM25Search
 from .llm import LLM
 from .search_dataset import search_dataset as run_search_dataset
 from .answer_dataset import run_answer_dataset
+from .evaluate import run_evaluate
 
 MAX_CHUNK_SIZE = 2000
 VLLM_PATH = "data/raw"
@@ -100,7 +101,6 @@ def search(query: str, k: int = 5):
         console.print(f"\n[green]Path:[/green] {chunk.path}")
         console.print(f"Start: {chunk.start}")
         console.print(f"End: {chunk.end}")
-        console.print(f"Content:\n{chunk.content}")
 
 
 # Command: search_dataset
@@ -171,3 +171,11 @@ def answer_dataset(
     
     console.print(f"[green]Saved to:[/green] {output_path}")
 
+def evaluate(
+    student_search_results_path: str,
+    dataset_path: str,
+):
+    return run_evaluate(
+        student_search_results_path,
+        dataset_path,
+    )
