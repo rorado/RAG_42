@@ -39,6 +39,10 @@ index:
 	$(PYTHON) index --max_chunk_size $(MAX_CHUNK_SIZE)
 
 
+index_embeddings:
+	$(PYTHON) index_embeddings --max_chunk_size $(MAX_CHUNK_SIZE)
+
+
 search:
 	@test -n "$(QUERY)" || (echo "Error: QUERY is required" && exit 1)
 	$(PYTHON) search "$(QUERY)" --k $(K)
@@ -51,6 +55,13 @@ search_dataset:
 		--save_directory "$(SEARCH_DIR_SAVE)"
 
 
+search_embeddings:
+	$(PYTHON) search_dataset \
+		--dataset_path "$(DATASET_PATH)" \
+		--k $(K) \
+		--save_directory "$(SEARCH_DIR_SAVE)" \
+		--method semantic
+
 answer:
 	@test -n "$(QUERY)" || (echo "Error: QUERY is required" && exit 1)
 	$(PYTHON) answer "$(QUERY)" --k $(K)
@@ -60,6 +71,7 @@ answer_dataset:
 	$(PYTHON) answer_dataset \
 		--student_search_results_path "$(SEARCH_RESULTS)" \
 		--save_directory "$(ANSWER_DIR_SAVE)"
+
 
 
 evaluate:

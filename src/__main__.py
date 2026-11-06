@@ -7,15 +7,18 @@ from .main import (
     search_dataset,
     answer,
     answer_dataset,
-    evaluate
+    evaluate,
+    index_embeddings
 )
 
 
 def main():
     fire.Fire({
         "index": index,
+        "index_embeddings": index_embeddings,
         "search": search,
         "search_dataset": search_dataset,
+        "search_embeddings": search_dataset,
         "answer": answer,
         "answer_dataset": answer_dataset,
         "evaluate": evaluate

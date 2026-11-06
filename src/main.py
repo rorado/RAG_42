@@ -11,6 +11,8 @@ from .llm import LLM
 from .search_dataset import search_dataset as run_search_dataset
 from .answer_dataset import run_answer_dataset
 from .evaluate import run_evaluate
+from .semantic_search import Semantic
+from .chunk_loader import load_chunks
 
 MAX_CHUNK_SIZE = 2000
 VLLM_PATH = "data/raw"
@@ -52,15 +54,6 @@ def search_in_vllm_files(
     return chunks_list
 
 
-def load_chunks(folder_path: str = "data/processed") -> list[Chunk]:
-
-    file_path = Path(folder_path) / "chunks.json"
-
-    with file_path.open("r", encoding="utf-8") as file:
-        data = json.load(file)
-
-    return [Chunk.model_validate(item) for item in data]
-
 
 def create_bm25() -> BM25Search:
 
@@ -87,6 +80,20 @@ def index(max_chunk_size: int = 2000):
     )
 
 
+def index_embeddings(max_chunk_size: int = 2000):
+    if max_chunk_size <= 0:
+        raise ValueError("max_chunk_size must be greater than 0")
+    
+    chunks = search_in_vllm_files(VLLM_PATH, max_chunk_size)
+    semantic = Semantic()
+
+    semantic.index(chunks)
+
+    console.print(
+        f"[bold green]Indexed {len(chunks)} chunks semanticlly[/bold green]"
+    )
+    
+
 # Command: search
 def search(query: str, k: int = 5):
 
@@ -108,19 +115,21 @@ def search_dataset(
     dataset_path: str,
     save_directory: str,
     k: int = 5,
+    method = "lexical"
 ):
 
     if k <= 0:
         raise ValueError("k must be greater than 0")
 
     bm25 = create_bm25()
-
     output_path = run_search_dataset(
-        dataset_path=dataset_path,
-        save_directory=save_directory,
-        bm25=bm25,
-        k=k,
-    )
+            dataset_path=dataset_path,
+            save_directory=save_directory,
+            bm25=bm25,
+            k=k,
+            method= method
+        )
+
 
     console.print(f"[green]Saved to:[/green] {output_path}")
 

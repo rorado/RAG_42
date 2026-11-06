@@ -5,7 +5,7 @@ import numpy as np
 from sentence_transformers import SentenceTransformer
 
 
-class SemanticSearch:
+class Semantic:
     def __init__(self):
         self.model = SentenceTransformer(
             "sentence-transformers/all-MiniLM-L6-v2",
@@ -38,7 +38,7 @@ class SemanticSearch:
         if len(chunks) != len(self.embeddings):
             raise ValueError("Chunks and embeddings do not match")
 
-        if not chunks or top_k <= 0 or not query.strip():
+        if len(chunks) == 0 or top_k <= 0 or not query.strip():
             return []
 
         query_vector = self.model.encode(
@@ -50,7 +50,3 @@ class SemanticSearch:
         indices = np.argsort(scores)[::-1][:top_k]
 
         return [chunks[int(i)] for i in indices]
-
-
-
-text = "How to free GPU memory?"
