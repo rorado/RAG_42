@@ -1,9 +1,6 @@
-
-
-from chunking import Chunk
-from bm25 import BM25Search
-from semantic_search import Semantic
-
+from .bm25 import BM25Search
+from .chunking import Chunk
+from .semantic_search import Semantic
 
 
 class HybridSearch:

@@ -1,7 +1,9 @@
 import re
-from rank_bm25 import BM25Okapi
-from chunking import Chunk
 from functools import lru_cache
+
+from rank_bm25 import BM25Okapi
+
+from .chunking import Chunk
 
 
 STOPWORDS = {

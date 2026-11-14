@@ -1,21 +1,19 @@
-
 import os
+import pickle
 from pathlib import Path
+
 from rich.console import Console
-from bm25 import BM25Search
-from .chunking import chunk_file, chunk_file_py, Chunk, store_chunks
+
+from .answer_dataset import run_answer_dataset
+from .bm25 import BM25Search
+from .chunk_loader import load_chunks
+from .chunking import Chunk, chunk_file, chunk_file_py, store_chunks
+from .evaluate import run_evaluate
+from .hybrid_search import HybridSearch
+from .incremental import detect_changes, save_hashes
 from .llm import LLM
 from .search_dataset import search_dataset as run_search_dataset
-from .answer_dataset import run_answer_dataset
-from .evaluate import run_evaluate
 from .semantic_search import Semantic
-from .incremental import detect_changes, save_hashes
-from pathlib import Path
-import pickle
-from .hybrid_search import HybridSearch
-from .semantic_search import Semantic
-from .chunk_loader import load_chunks
-
 
 
 MAX_CHUNK_SIZE = 2000
@@ -67,8 +65,6 @@ class Retriever:
             )
 
         return self.hybrid.rrf(query=query, top_k=k)
-
-
 
 
 
@@ -277,7 +273,6 @@ def answer(query: str, k: int = 5):
     for (number, chunk) in  enumerate(results):
         context_list.append(f"contetn {number + 1}:  {chunk.content}")
 
-    # print(context_list)
     context:str = "\n\n\n".join(context_list)
     print(context)
     llm = LLM()
@@ -288,7 +283,6 @@ def answer(query: str, k: int = 5):
     print(response)
 
 
-# Command: answer_dataset
 def answer_dataset(
     student_search_results_path: str,
     save_directory: str,

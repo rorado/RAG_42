@@ -1,11 +1,11 @@
 from pathlib import Path
 
-from .llm import LLM
 from .classes import (
     MinimalAnswer,
     StudentSearchResults,
     StudentSearchResultsAndAnswer,
 )
+from .llm import LLM
 
 
 def run_answer_dataset(

@@ -1,10 +1,8 @@
-
 import json
 from pathlib import Path
-from .main import Retriever
 from .classes import (
-    MinimalSearchResults,
     InvalidFormatError,
+    MinimalSearchResults,
     MinimalSource,
     StudentSearchResults,
 )
@@ -17,6 +15,8 @@ def search_dataset(
     k: int = 5,
     method: str = "lexical",
 ):
+    from .main import Retriever
+
     if k <= 0:
         raise ValueError("k must be greater than 0")
 

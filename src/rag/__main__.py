@@ -1,15 +1,14 @@
-
 import fire
 
 from .main import (
-    index,
-    search,
-    search_dataset,
     answer,
     answer_dataset,
     evaluate,
+    incremental_index,
+    index,
     index_embeddings,
-    incremental_index
+    search,
+    search_dataset,
 )
 
 

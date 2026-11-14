@@ -1,11 +1,13 @@
 
-PYTHON = uv run python -m src
+PYTHON = uv run python -m rag
 
 K ?= 5
 MAX_CHUNK_SIZE ?= 2000
 METHOD_SEARCH = lexical
 
 QUERY ?=
+HOST ?= 127.0.0.1
+PORT ?= 8000
 
 DATASET_PATH ?= data/datasets/UnansweredQuestions/dataset_docs_public.json
 GROUND_TRUTH ?= data/datasets/AnsweredQuestions/dataset_docs_public.json
@@ -18,12 +20,13 @@ ANSWER_DIR_SAVE ?= data/output/search_results/AnsweredQuestions/lexical
 SEARCH_RESULTS ?= $(SEARCH_DIR_SAVE)/$(notdir $(DATASET_PATH))
 
 
-.PHONY: help install index search search_dataset answer answer_dataset evaluate clean
+.PHONY: help install index search search_dataset answer answer_dataset evaluate clean http_local
 
 
 help:
 	@echo "Available commands:"
 	@echo "  make install"
+	@echo "  make http_local [HOST=127.0.0.1 PORT=8000]"
 	@echo "  make index"
 	@echo "  make search QUERY='your question'"
 	@echo "  make search_dataset"
@@ -35,6 +38,9 @@ help:
 
 install:
 	uv sync
+
+http_local:
+	uv run uvicorn local_http.api:app --app-dir src --host $(HOST) --port $(PORT)
 
 
 index:
