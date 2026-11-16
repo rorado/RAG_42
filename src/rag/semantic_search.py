@@ -1,5 +1,5 @@
 from pathlib import Path
-
+from .chunking import Chunk
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
@@ -12,7 +12,7 @@ class Semantic:
         )
         self.embeddings = None
 
-    def index(self, chunks, path="data/processed/embeddings.npy"):
+    def index(self, chunks: list, path: str="data/processed/embeddings.npy"):
         texts = [chunk.content for chunk in chunks]
 
         embeddings = self.model.encode(
@@ -27,10 +27,10 @@ class Semantic:
         Path(path).parent.mkdir(parents=True, exist_ok=True)
         np.save(path, embeddings)
 
-    def load(self, path="data/processed/embeddings.npy"):
+    def load(self, path: str ="data/processed/embeddings.npy") -> None:
         self.embeddings = np.load(path)
 
-    def search(self, query, chunks, top_k=20):
+    def search(self, query: str, chunks: list, top_k:int =20) -> list:
         if self.embeddings is None:
             raise ValueError("Embeddings not loaded")
 

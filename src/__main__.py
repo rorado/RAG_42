@@ -1,6 +1,6 @@
 import fire
 
-from .main import (
+from .rag.main import (
     answer,
     answer_dataset,
     evaluate,

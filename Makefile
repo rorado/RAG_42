@@ -1,5 +1,5 @@
 
-PYTHON = uv run python -m rag
+PYTHON = uv run python -m src
 
 K ?= 5
 MAX_CHUNK_SIZE ?= 2000
@@ -12,6 +12,7 @@ PORT ?= 8000
 DATASET_PATH ?= data/datasets/UnansweredQuestions/dataset_docs_public.json
 GROUND_TRUTH ?= data/datasets/AnsweredQuestions/dataset_docs_public.json
 VLLM_PATH  ?= data/raw/vllm-0.10.1
+
 
 
 SEARCH_DIR_SAVE ?= data/output/search_results/UnansweredQuestions/lexical
@@ -44,11 +45,11 @@ http_local:
 
 
 index:
-	$(PYTHON) index --max_chunk_size $(MAX_CHUNK_SIZE)
+	$(PYTHON) index --max_chunk_size $(MAX_CHUNK_SIZE) --vllm_path ${VLLM_PATH}
 
 
 index_embeddings:
-	$(PYTHON) index_embeddings --max_chunk_size $(MAX_CHUNK_SIZE)
+	$(PYTHON) index_embeddings --max_chunk_size $(MAX_CHUNK_SIZE) --vllm_path ${VLLM_PATH}
 
 
 search:
@@ -61,23 +62,7 @@ search_dataset:
 		--dataset_path "$(DATASET_PATH)" \
 		--k $(K) \
 		--save_directory "$(SEARCH_DIR_SAVE)"
-		--method semantic
-
-
-semantic_search:
-	$(PYTHON) search_dataset \
-		--dataset_path "$(DATASET_PATH)" \
-		--k $(K) \
-		--save_directory "$(SEARCH_DIR_SAVE)" \
-		--method semantic
-
-
-hybrid_search:
-	$(PYTHON)  hybrid_search \
-		--dataset_path "$(DATASET_PATH)" \
-		--k $(K) \
-		--save_directory "$(SEARCH_DIR_SAVE)" \
-		--method hybrid
+		--method "${METHOD_SEARCH}"
 
 
 answer:

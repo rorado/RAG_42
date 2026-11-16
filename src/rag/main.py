@@ -1,9 +1,7 @@
 import os
 import pickle
 from pathlib import Path
-
 from rich.console import Console
-
 from .answer_dataset import run_answer_dataset
 from .bm25 import BM25Search
 from .chunk_loader import load_chunks
@@ -22,10 +20,8 @@ WITH_CACHE = False
 console = Console()
 
 
-
-
 class Retriever:
-    def __init__(self, method="lexical"):
+    def __init__(self, method="lexical") -> None:
         if method not in ("lexical", "semantic", "hybrid"):
             raise ValueError(f"Unknown method: {method}")
 
@@ -53,7 +49,7 @@ class Retriever:
                 semantic=self.semantic,
             )
 
-    def search(self, query: str, k: int = 5):
+    def search(self, query: str, k: int = 5) -> list[Chunk]:
         if self.method == "lexical":
             return self.bm25.search(query, top_k=k)
 
@@ -67,11 +63,10 @@ class Retriever:
         return self.hybrid.rrf(query=query, top_k=k)
 
 
-
 def incremental_index(
     directory: str = "data/raw/vllm-0.10.1",
     max_chunk_size: int = MAX_CHUNK_SIZE,
-):
+) -> None:
     chunks_path = Path("data/processed/chunks.json")
 
     changed_files, deleted_files, new_hashes = detect_changes(directory)
@@ -81,7 +76,6 @@ def incremental_index(
         index(max_chunk_size)
         save_hashes(new_hashes)
         return
-
 
     if not changed_files and not deleted_files:
         print("No changes detected")
@@ -120,10 +114,8 @@ def incremental_index(
                 )
             )
 
-    # Save updated chunks.
     store_chunks(chunks, "data/processed")
 
-    # Save hashes only after successful chunk indexing.
     save_hashes(new_hashes)
 
     print(f"Changed/new files: {len(changed_files)}")
@@ -165,11 +157,12 @@ def search_in_vllm_files(
     return chunks_list
 
 
-def index(max_chunk_size: int = 2000, store_path = "data/processed"):
+def index(max_chunk_size: int = 2000,
+          store_path="data/processed", vllm_path=VLLM_PATH):
     if max_chunk_size <= 0:
         raise ValueError("max_chunk_size must be greater than 0")
 
-    chunks = search_in_vllm_files(VLLM_PATH, max_chunk_size)
+    chunks = search_in_vllm_files(vllm_path, max_chunk_size)
 
     store_chunks(chunks, store_path)
 
@@ -178,11 +171,13 @@ def index(max_chunk_size: int = 2000, store_path = "data/processed"):
     )
 
 
-def index_embeddings(max_chunk_size: int = 2000):
+def index_embeddings(max_chunk_size: int = 2000,
+                     vllm_path=VLLM_PATH, store_path="data/processed"):
     if max_chunk_size <= 0:
         raise ValueError("max_chunk_size must be greater than 0")
-    
-    chunks = search_in_vllm_files(VLLM_PATH, max_chunk_size)
+
+    chunks = search_in_vllm_files(vllm_path, max_chunk_size)
+    store_chunks(chunks, store_path)
     semantic = Semantic()
 
     semantic.index(chunks)
@@ -191,15 +186,18 @@ def index_embeddings(max_chunk_size: int = 2000):
         f"[bold green]Indexed {len(chunks)} chunks semanticlly[/bold green]"
     )
 
+
 def create_bm25(cache=False) -> BM25Search:
     cache_path = Path("data/processed/cache_index.pkl")
     chunks_path = Path("data/processed/chunks.json")
 
-    if (cache_path.exists() and cache
-        and cache_path.stat().st_mtime_ns >= chunks_path.stat().st_mtime_ns): 
-        with open(cache_path, "rb") as file:
-            return(pickle.load(file))
+    if cache_path.exists() and chunks_path.exists() and cache:
+        cache_path_time = cache_path.stat().st_mtime_ns
+        chunks_path_time = chunks_path.stat().st_mtime_ns
 
+        if cache_path_time >= chunks_path_time:
+            with open(cache_path, "rb") as file:
+                return pickle.load(file)
 
     chunks = load_chunks()
 
@@ -214,9 +212,8 @@ def create_bm25(cache=False) -> BM25Search:
 def search(
     query: str,
     k: int = 5,
-    # cache: bool = False,
     method: str = "lexical",
-):
+) -> None:
     if k <= 0:
         raise ValueError("k must be greater than 0")
 
@@ -236,8 +233,8 @@ def search_dataset(
     dataset_path: str,
     save_directory: str,
     k: int = 5,
-    method:str = "lexical"
-):
+    method: str = "lexical"
+) -> None:
 
     if k <= 0:
         raise ValueError("k must be greater than 0")
@@ -249,9 +246,8 @@ def search_dataset(
             dataset_path=dataset_path,
             save_directory=save_directory,
             k=k,
-            method= method
+            method=method
         )
-
 
     console.print(f"[green]Saved to:[/green] {output_path}")
 
@@ -269,12 +265,11 @@ def answer(query: str, k: int = 5):
         console.print("[yellow]No sources found[/yellow]")
         return
 
-    context_list:list[str] = []
-    for (number, chunk) in  enumerate(results):
+    context_list: list[str] = []
+    for (number, chunk) in enumerate(results):
         context_list.append(f"contetn {number + 1}:  {chunk.content}")
 
-    context:str = "\n\n\n".join(context_list)
-    print(context)
+    context: str = "\n\n\n".join(context_list)
     llm = LLM()
 
     response = llm.answer(query, context)
@@ -292,15 +287,16 @@ def answer_dataset(
         raise ValueError("k must be greater than 0")
 
     bm25 = create_bm25()
-    
+
     output_path = run_answer_dataset(
         dataset_path=student_search_results_path,
         save_directory=save_directory,
         bm25=bm25,
         k=k,
     )
-    
+
     console.print(f"[green]Saved to:[/green] {output_path}")
+
 
 def evaluate(
     student_search_results_path: str,
@@ -310,4 +306,3 @@ def evaluate(
         student_search_results_path,
         dataset_path,
     )
-
