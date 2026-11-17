@@ -1,20 +1,22 @@
 import json
 from pathlib import Path
 
-from .classes import StudentSearchResults
+from .classes import MinimalSource, StudentSearchResults
 
 
-def is_correct_source(expected, retrieved):
+def is_correct_source(
+    expected: dict[str, str | int], retrieved: MinimalSource,
+) -> bool:
     if expected["file_path"] != retrieved.file_path:
         return False
 
     start = max(
-        expected["first_character_index"],
+        int(expected["first_character_index"]),
         retrieved.first_character_index,
     )
 
     end = min(
-        expected["last_character_index"],
+        int(expected["last_character_index"]),
         retrieved.last_character_index,
     )
 
@@ -22,11 +24,11 @@ def is_correct_source(expected, retrieved):
 
     union = (
         max(
-            expected["last_character_index"],
+            int(expected["last_character_index"]),
             retrieved.last_character_index,
         )
         - min(
-            expected["first_character_index"],
+            int(expected["first_character_index"]),
             retrieved.first_character_index,
         )
     )
@@ -42,7 +44,7 @@ def is_correct_source(expected, retrieved):
 def run_evaluate(
     student_search_results_path: str,
     dataset_path: str,
-):
+) -> float:
     results = StudentSearchResults.model_validate_json(
         Path(student_search_results_path).read_text(encoding="utf-8")
     )

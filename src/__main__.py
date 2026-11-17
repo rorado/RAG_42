@@ -12,7 +12,7 @@ from .rag.main import (
 )
 
 
-def main():
+def main() -> None:
     fire.Fire({
         "index": index,
         "index_embeddings": index_embeddings,

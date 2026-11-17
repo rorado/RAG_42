@@ -21,7 +21,7 @@ ANSWER_DIR_SAVE ?= data/output/search_results/AnsweredQuestions/lexical
 SEARCH_RESULTS ?= $(SEARCH_DIR_SAVE)/$(notdir $(DATASET_PATH))
 
 
-.PHONY: help install index search search_dataset answer answer_dataset evaluate clean http_local
+.PHONY: help install index search search_dataset answer answer_dataset evaluate clean http_local run debug lint
 
 
 help:
@@ -61,7 +61,7 @@ search_dataset:
 	$(PYTHON) search_dataset \
 		--dataset_path "$(DATASET_PATH)" \
 		--k $(K) \
-		--save_directory "$(SEARCH_DIR_SAVE)"
+		--save_directory "$(SEARCH_DIR_SAVE)" \
 		--method "${METHOD_SEARCH}"
 
 
@@ -90,4 +90,15 @@ evaluate:
 
 
 clean:
-	rm -rf data/processed
+	rm -rf data/processed .mypy_cache .pytest_cache
+	find src -type d -name __pycache__ -exec rm -rf {} +
+
+run:
+	$(PYTHON) $(ARGS)
+
+debug:
+	uv run python -m pdb -m src $(ARGS)
+
+lint:
+	uv run flake8 .
+	uv run mypy . --warn-return-any --warn-unused-ignores --ignore-missing-imports --disallow-untyped-defs --check-untyped-defs

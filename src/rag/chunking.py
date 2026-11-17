@@ -115,6 +115,7 @@ def chunk_file_py(content: str, path: str, max_chunk: int) -> list[Chunk]:
 
     return chunks
 
+
 def store_chunks(
     chunks: list[Chunk],
     folder_path: str = "data/processed",

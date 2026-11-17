@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
+from collections.abc import AsyncIterator
+from typing import Any
 
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 
-from rag.bm25 import BM25Search
-from rag.chunk_loader import load_chunks
+from rag.main import create_bm25
 from rag.llm import LLM
 
 
@@ -19,9 +20,8 @@ class AnswerRequest(BaseModel):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    bm25 = BM25Search()
-    bm25.index(load_chunks())
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+    bm25 = create_bm25()
     app.state.bm25 = bm25
     app.state.llm = LLM()
     yield
@@ -31,7 +31,7 @@ app = FastAPI(lifespan=lifespan)
 
 
 @app.post("/search")
-def search(request: SearchRequest):
+def search(request: SearchRequest) -> dict[str, Any]:
     results = app.state.bm25.search(
         request.query,
         top_k=request.top_k,
@@ -52,7 +52,7 @@ def search(request: SearchRequest):
 
 
 @app.post("/answer")
-def answer(request: AnswerRequest):
+def answer(request: AnswerRequest) -> dict[str, Any]:
     results = app.state.bm25.search(request.query, top_k=request.top_k)
 
     if not results:
@@ -71,4 +71,3 @@ def answer(request: AnswerRequest):
     return {
         "Answer": response
     }
-

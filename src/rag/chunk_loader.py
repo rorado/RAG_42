@@ -10,7 +10,7 @@ def load_chunks(folder_path: str = "data/processed") -> list[Chunk]:
     with file_path.open("r", encoding="utf-8") as file:
         try:
             data = json.load(file)
-        except Exception as e:
+        except (ValueError, TypeError):
             return []
 
     return [Chunk.model_validate(item) for item in data]

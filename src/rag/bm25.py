@@ -1,7 +1,9 @@
 import re
-from functools import lru_cache
+from collections import OrderedDict
 
 from rank_bm25 import BM25Okapi
+
+from .cache import QueryCache
 
 from .chunking import Chunk
 
@@ -32,11 +34,17 @@ def tokenize(text: str) -> list[str]:
 
 class BM25Search:
 
-    def __init__(self):
-        self.chunks = []
-        self.bm25 = None
+    def __init__(self) -> None:
+        self.chunks: list[Chunk] = []
+        self.bm25: BM25Okapi | None = None
+        self.query_cache: QueryCache | None = None
+        self._results: OrderedDict[
+            tuple[str, int], list[int]
+        ] = OrderedDict()
 
-    def index(self, chunks: list[Chunk]):
+    def index(self, chunks: list[Chunk]) -> None:
+        self._results.clear()
+        self.query_cache = None
         self.chunks = chunks
 
         corpus = [tokenize(chunk.content) for chunk in chunks]
@@ -47,51 +55,31 @@ class BM25Search:
             else None
         )
 
-    @lru_cache(maxsize=1000)
     def search(self, query: str, top_k: int = 5) -> list[Chunk]:
-        if self.bm25 is None or top_k <= 0:
+        """Search using memory and optional persistent result caches."""
+        if self.bm25 is None or top_k <= 0 or not tokenize(query):
             return []
 
-        tokens = tokenize(query)
+        key = (query, top_k)
+        indices = self._results.get(key)
+        if indices is None and self.query_cache is not None:
+            indices = self.query_cache.get(query, top_k, len(self.chunks))
 
-        if not tokens:
-            return []
+        if indices is None:
+            scores = self.bm25.get_scores(tokenize(query))
+            ranked = sorted(
+                range(len(scores)), key=lambda i: scores[i], reverse=True,
+            )
+            indices = [i for i in ranked[:top_k] if scores[i] > 0]
+            if self.query_cache is not None:
+                self.query_cache.put(query, top_k, indices)
 
-        scores = self.bm25.get_scores(tokens)
+        self._results[key] = indices
+        self._results.move_to_end(key)
+        if len(self._results) > 1000:
+            self._results.popitem(last=False)
+        return [self.chunks[i].model_copy() for i in indices]
 
-        indices = sorted(
-            range(len(scores)),
-            key=lambda i: scores[i],
-            reverse=True,
-        )
-
-        return [
-            self.chunks[i]
-            for i in indices[:top_k]
-            if scores[i] > 0
-        ]
-
-    @lru_cache(maxsize=1000)
     def search_cache(self, query: str, top_k: int = 5) -> list[Chunk]:
-        if self.bm25 is None or top_k <= 0:
-            return []
-    
-        tokens = tokenize(query)
-    
-        if not tokens:
-            return []
-    
-        scores = self.bm25.get_scores(tokens)
-    
-        indices = sorted(
-            range(len(scores)),
-            key=lambda i: scores[i],
-            reverse=True,
-        )
-    
-        return [
-            self.chunks[i]
-            for i in indices[:top_k]
-            if scores[i] > 0
-        ]
-
+        """Keep the original cached-search entry point available."""
+        return self.search(query, top_k)

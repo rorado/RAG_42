@@ -11,7 +11,7 @@ from .llm import LLM
 def run_answer_dataset(
     dataset_path: str,
     save_directory: str,
-):
+) -> Path:
     data = StudentSearchResults.model_validate_json(
         Path(dataset_path).read_text(encoding="utf-8")
     )

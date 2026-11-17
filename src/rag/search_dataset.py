@@ -8,13 +8,13 @@ from .classes import (
 )
 
 
-
 def search_dataset(
     dataset_path: str,
     save_directory: str,
     k: int = 5,
     method: str = "lexical",
-):
+    cache: bool = True,
+) -> Path:
     from .main import Retriever
 
     if k <= 0:
@@ -23,7 +23,7 @@ def search_dataset(
     with open(dataset_path, encoding="utf-8") as f:
         data = json.load(f)
 
-    retriever = Retriever(method)
+    retriever = Retriever(method, cache=cache)
     search_results = []
 
     for item in data["rag_questions"]:

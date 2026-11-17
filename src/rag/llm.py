@@ -2,7 +2,7 @@ from transformers import pipeline
 
 
 class LLM:
-    def __init__(self):
+    def __init__(self) -> None:
         self.generator = pipeline(
             "text-generation",
             model="Qwen/Qwen3-0.6B",
@@ -20,7 +20,7 @@ class LLM:
                     Use facts from only the context
 
                    Instructions:
-                    - Identify the most relevant facts about the subject of the question.
+                    - Identify the facts most relevant to the question.
                     - Prefer informative answers over vague statements.
                     - Ignore irrelevant context.
                     - You may paraphrase information from the context.
@@ -48,4 +48,4 @@ class LLM:
             },
         )
 
-        return output[0]["generated_text"][-1]["content"]
+        return str(output[0]["generated_text"][-1]["content"])

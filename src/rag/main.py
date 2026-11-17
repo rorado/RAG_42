@@ -1,9 +1,11 @@
 import os
 import pickle
+import tempfile
 from pathlib import Path
 from rich.console import Console
 from .answer_dataset import run_answer_dataset
 from .bm25 import BM25Search
+from .cache import QueryCache, index_signature
 from .chunk_loader import load_chunks
 from .chunking import Chunk, chunk_file, chunk_file_py, store_chunks
 from .evaluate import run_evaluate
@@ -16,33 +18,35 @@ from .semantic_search import Semantic
 
 MAX_CHUNK_SIZE = 2000
 VLLM_PATH = "data/raw"
-WITH_CACHE = False
 console = Console()
 
 
 class Retriever:
-    def __init__(self, method="lexical") -> None:
+    def __init__(self, method: str = "lexical", cache: bool = True) -> None:
         if method not in ("lexical", "semantic", "hybrid"):
             raise ValueError(f"Unknown method: {method}")
 
         self.method = method
-        self.bm25 = None
-        self.semantic = None
-        self.hybrid = None
-        self.chunks = None
+        self.bm25: BM25Search | None = None
+        self.semantic: Semantic | None = None
+        self.hybrid: HybridSearch | None = None
+        self.chunks: list[Chunk] = []
 
         if method in ("lexical", "hybrid"):
-            self.bm25 = create_bm25()
+            self.bm25 = create_bm25(cache)
 
         if method in ("semantic", "hybrid"):
             self.chunks = load_chunks()
             self.semantic = Semantic()
             self.semantic.load()
 
-            if len(self.chunks) != len(self.semantic.embeddings):
+            if (self.semantic.embeddings is None
+                    or len(self.chunks) != len(self.semantic.embeddings)):
                 raise ValueError("Chunks and embeddings do not match")
 
         if method == "hybrid":
+            assert self.bm25 is not None
+            assert self.semantic is not None
             self.hybrid = HybridSearch(
                 chunks=self.chunks,
                 bm25=self.bm25,
@@ -51,15 +55,18 @@ class Retriever:
 
     def search(self, query: str, k: int = 5) -> list[Chunk]:
         if self.method == "lexical":
+            assert self.bm25 is not None
             return self.bm25.search(query, top_k=k)
 
         if self.method == "semantic":
+            assert self.semantic is not None
             return self.semantic.search(
                 query=query,
                 chunks=self.chunks,
                 top_k=k,
             )
 
+        assert self.hybrid is not None
         return self.hybrid.rrf(query=query, top_k=k)
 
 
@@ -158,7 +165,8 @@ def search_in_vllm_files(
 
 
 def index(max_chunk_size: int = 2000,
-          store_path="data/processed", vllm_path=VLLM_PATH):
+          store_path: str = "data/processed",
+          vllm_path: str = VLLM_PATH) -> None:
     if max_chunk_size <= 0:
         raise ValueError("max_chunk_size must be greater than 0")
 
@@ -172,7 +180,8 @@ def index(max_chunk_size: int = 2000,
 
 
 def index_embeddings(max_chunk_size: int = 2000,
-                     vllm_path=VLLM_PATH, store_path="data/processed"):
+                     vllm_path: str = VLLM_PATH,
+                     store_path: str = "data/processed") -> None:
     if max_chunk_size <= 0:
         raise ValueError("max_chunk_size must be greater than 0")
 
@@ -187,25 +196,45 @@ def index_embeddings(max_chunk_size: int = 2000,
     )
 
 
-def create_bm25(cache=False) -> BM25Search:
-    cache_path = Path("data/processed/cache_index.pkl")
-    chunks_path = Path("data/processed/chunks.json")
+def create_bm25(
+    cache: bool = True, store_path: str = "data/processed",
+) -> BM25Search:
+    """Load a reusable BM25 index, rebuilding stale or broken caches."""
+    folder = Path(store_path)
+    cache_path = folder / "cache_index.pkl"
+    signature = index_signature(folder / "chunks.json")
+    bm25: BM25Search | None = None
 
-    if cache_path.exists() and chunks_path.exists() and cache:
-        cache_path_time = cache_path.stat().st_mtime_ns
-        chunks_path_time = chunks_path.stat().st_mtime_ns
+    if cache:
+        try:
+            with cache_path.open("rb") as file:
+                saved = pickle.load(file)
+            if (isinstance(saved, tuple) and len(saved) == 2
+                    and saved[0] == signature
+                    and isinstance(saved[1], BM25Search)):
+                bm25 = saved[1]
+        except (OSError, ValueError, TypeError, EOFError,
+                pickle.PickleError, AttributeError, ImportError):
+            pass
 
-        if cache_path_time >= chunks_path_time:
-            with open(cache_path, "rb") as file:
-                return pickle.load(file)
+    if bm25 is None:
+        bm25 = BM25Search()
+        bm25.index(load_chunks(store_path))
+        if cache:
+            try:
+                with tempfile.NamedTemporaryFile(
+                    dir=folder, delete=False,
+                ) as file:
+                    temporary = Path(file.name)
+                    pickle.dump((signature, bm25), file)
+                temporary.replace(cache_path)
+            except OSError:
+                pass
 
-    chunks = load_chunks()
-
-    bm25 = BM25Search()
-    bm25.index(chunks)
-
-    with open(cache_path, "wb") as file:
-        pickle.dump(bm25, file)
+    if cache:
+        bm25.query_cache = QueryCache(
+            folder / "query_cache.sqlite3", signature,
+        )
     return bm25
 
 
@@ -213,6 +242,7 @@ def search(
     query: str,
     k: int = 5,
     method: str = "lexical",
+    cache: bool = True,
 ) -> None:
     if k <= 0:
         raise ValueError("k must be greater than 0")
@@ -220,7 +250,7 @@ def search(
     if method not in ("lexical", "semantic", "hybrid"):
         raise ValueError(f"Unknown search method: {method}")
 
-    retriever = Retriever(method)
+    retriever = Retriever(method, cache=cache)
     results = retriever.search(query, k)
 
     for chunk in results:
@@ -233,7 +263,8 @@ def search_dataset(
     dataset_path: str,
     save_directory: str,
     k: int = 5,
-    method: str = "lexical"
+    method: str = "lexical",
+    cache: bool = True,
 ) -> None:
 
     if k <= 0:
@@ -243,21 +274,22 @@ def search_dataset(
         raise ValueError(f"Unknown search method: {method}")
 
     output_path = run_search_dataset(
-            dataset_path=dataset_path,
-            save_directory=save_directory,
-            k=k,
-            method=method
-        )
+        dataset_path=dataset_path,
+        save_directory=save_directory,
+        k=k,
+        method=method,
+        cache=cache,
+    )
 
     console.print(f"[green]Saved to:[/green] {output_path}")
 
 
-def answer(query: str, k: int = 5):
+def answer(query: str, k: int = 5, cache: bool = True) -> None:
 
     if k <= 0:
         raise ValueError("k must be greater than 0")
 
-    bm25 = create_bm25()
+    bm25 = create_bm25(cache=cache)
 
     results = bm25.search(query, k)
 
@@ -282,17 +314,13 @@ def answer_dataset(
     student_search_results_path: str,
     save_directory: str,
     k: int = 5,
-):
+) -> None:
     if k <= 0:
         raise ValueError("k must be greater than 0")
-
-    bm25 = create_bm25()
 
     output_path = run_answer_dataset(
         dataset_path=student_search_results_path,
         save_directory=save_directory,
-        bm25=bm25,
-        k=k,
     )
 
     console.print(f"[green]Saved to:[/green] {output_path}")
@@ -301,7 +329,7 @@ def answer_dataset(
 def evaluate(
     student_search_results_path: str,
     dataset_path: str,
-):
+) -> float:
     return run_evaluate(
         student_search_results_path,
         dataset_path,

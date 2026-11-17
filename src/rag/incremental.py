@@ -1,14 +1,16 @@
 import hashlib
 import json
 from pathlib import Path
-from typing import Any
 
 
 def file_hash(path: Path) -> str:
     with open(path, "rb") as file:
         return hashlib.sha256(file.read()).hexdigest()
 
-def detect_changes(directory="data/raw/vllm-0.10.1") -> tuple[list, set, dict]:
+
+def detect_changes(
+    directory: str = "data/raw/vllm-0.10.1",
+) -> tuple[list[Path], set[str], dict[str, str]]:
     old_hashes = load_hashes()
 
     new_hashes = {}
@@ -30,27 +32,33 @@ def detect_changes(directory="data/raw/vllm-0.10.1") -> tuple[list, set, dict]:
             changed_files.append(path)
     deleted_files = set(old_hashes) - set(new_hashes)
 
-
     return changed_files, deleted_files, new_hashes
 
 
-def load_hashes(path="data/processed/file_hashes.json") -> (dict | Any):
-    path = Path(path)
+def load_hashes(
+    path: str = "data/processed/file_hashes.json",
+) -> dict[str, str]:
+    file_path = Path(path)
 
-    if not path.exists():
+    if not file_path.exists():
         return {}
-    with open(path, "r", encoding="utf-8") as file:
+    with open(file_path, "r", encoding="utf-8") as file:
         try:
-            return json.load(file)
+            data = json.load(file)
+            if not isinstance(data, dict):
+                return {}
+            return {str(key): str(value) for key, value in data.items()}
         except Exception:
             print("chunks not found")
             return {}
 
 
+def save_hashes(
+    hashes: dict[str, str],
+    path: str = "data/processed/file_hashes.json",
+) -> None:
+    file_path = Path(path)
+    file_path.parent.mkdir(parents=True, exist_ok=True)
 
-def save_hashes(hashes, path="data/processed/file_hashes.json") -> None:
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(path, "w", encoding="utf-8") as file:
+    with open(file_path, "w", encoding="utf-8") as file:
         json.dump(hashes, file, indent=2)

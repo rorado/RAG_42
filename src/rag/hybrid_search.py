@@ -9,12 +9,12 @@ class HybridSearch:
         chunks: list[Chunk],
         bm25: BM25Search,
         semantic: Semantic,
-    ):
+    ) -> None:
         self.chunks = chunks
         self.bm25 = bm25
         self.semantic = semantic
 
-    def rrf(self, query: str, top_k: int = 5):
+    def rrf(self, query: str, top_k: int = 5) -> list[Chunk]:
         if not query.strip() or top_k <= 0:
             return []
 
@@ -25,7 +25,7 @@ class HybridSearch:
             query, self.chunks, top_k=candidate_k
         )
 
-        rrf_res = {}
+        rrf_res: dict[tuple[str, int, int], float] = {}
         chunk_map = {}
 
         for results in [bm25_res, semantic_res]:
@@ -39,7 +39,7 @@ class HybridSearch:
 
         ranked = sorted(
             rrf_res,
-            key=rrf_res.get,
+            key=rrf_res.__getitem__,
             reverse=True,
         )
 
