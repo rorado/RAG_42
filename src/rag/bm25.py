@@ -4,6 +4,8 @@ from rank_bm25 import BM25Okapi
 import pickle
 from pathlib import Path
 
+from .chunking import Chunk
+
 
 STOPWORDS = {
     "the", "a", "an", "is", "are", "was", "were",
@@ -30,19 +32,20 @@ def tokenize(text: str) -> list[str]:
 
 
 class BM25Search:
-    def __init__(self, cache=False) -> None:
-        self.chunks = []
+    def __init__(self, cache: bool = False) -> None:
+        self.chunks: list[Chunk] = []
         self.bm25 = None
         self.use_cache = cache
 
         self.cache_path = Path("data/processed/cache_query.pkl")
+        self.cache: dict[tuple[str, int], list[Chunk]]
         if cache and self.cache_path.exists():
             with open(self.cache_path, "rb") as file:
                 self.cache = pickle.load(file)
         else:
             self.cache = {}
 
-    def index(self, chunks) -> None:
+    def index(self, chunks: list[Chunk]) -> None:
         cache_path = Path("data/processed/cache_index.pkl")
         chunks_path = Path("data/processed/chunks.json")
 
@@ -67,7 +70,7 @@ class BM25Search:
             with open(cache_path, "wb") as file:
                 pickle.dump(self.bm25, file)
 
-    def search(self, query, top_k=5) -> list:
+    def search(self, query: str, top_k: int = 5) -> list[Chunk]:
         if self.bm25 is None or top_k <= 0 or not tokenize(query):
             return []
         key = (query, top_k)

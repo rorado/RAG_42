@@ -193,7 +193,7 @@ def index_embeddings(max_chunk_size: int = 2000,
     )
 
 
-def create_bm25(cache=False):
+def create_bm25(cache: bool = False) -> BM25Search:
 
     bm25 = BM25Search(cache=cache)
     bm25.index(load_chunks())
