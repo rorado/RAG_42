@@ -1,9 +1,8 @@
-import json
 from pathlib import Path
 from .classes import (
-    InvalidFormatError,
     MinimalSearchResults,
     MinimalSource,
+    RagDataset,
     StudentSearchResults,
 )
 
@@ -20,22 +19,14 @@ def search_dataset(
     if k <= 0:
         raise ValueError("k must be greater than 0")
 
-    with open(dataset_path, encoding="utf-8") as f:
-        data = json.load(f)
-
+    dataset = RagDataset.model_validate_json(
+        Path(dataset_path).read_text(encoding="utf-8")
+    )
     retriever = Retriever(method, cache=cache)
     search_results = []
 
-    for item in data["rag_questions"]:
-        if "question" not in item:
-            raise InvalidFormatError("Missing question")
-
-        if "question_id" not in item:
-            raise InvalidFormatError("Missing question_id")
-
-        question = item["question"]
-
-        chunks = retriever.search(question, k)
+    for item in dataset.rag_questions:
+        chunks = retriever.search(item.question, k)
 
         sources = [
             MinimalSource(
@@ -48,8 +39,8 @@ def search_dataset(
 
         search_results.append(
             MinimalSearchResults(
-                question_id=item["question_id"],
-                question=question,
+                question_id=item.question_id,
+                question=item.question,
                 retrieved_sources=sources,
             )
         )

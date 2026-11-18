@@ -1,22 +1,26 @@
-import json
 from pathlib import Path
 
-from .classes import MinimalSource, StudentSearchResults
+from .classes import (
+    AnsweredQuestion,
+    MinimalSource,
+    RagDataset,
+    StudentSearchResults,
+)
 
 
 def is_correct_source(
-    expected: dict[str, str | int], retrieved: MinimalSource,
+    expected: MinimalSource, retrieved: MinimalSource,
 ) -> bool:
-    if expected["file_path"] != retrieved.file_path:
+    if expected.file_path != retrieved.file_path:
         return False
 
     start = max(
-        int(expected["first_character_index"]),
+        expected.first_character_index,
         retrieved.first_character_index,
     )
 
     end = min(
-        int(expected["last_character_index"]),
+        expected.last_character_index,
         retrieved.last_character_index,
     )
 
@@ -24,11 +28,11 @@ def is_correct_source(
 
     union = (
         max(
-            int(expected["last_character_index"]),
+            expected.last_character_index,
             retrieved.last_character_index,
         )
         - min(
-            int(expected["first_character_index"]),
+            expected.first_character_index,
             retrieved.first_character_index,
         )
     )
@@ -49,13 +53,14 @@ def run_evaluate(
         Path(student_search_results_path).read_text(encoding="utf-8")
     )
 
-    ground_truth = json.loads(
+    ground_truth = RagDataset.model_validate_json(
         Path(dataset_path).read_text(encoding="utf-8")
     )
 
     questions = {
-        str(item["question_id"]): item
-        for item in ground_truth["rag_questions"]
+        item.question_id: item
+        for item in ground_truth.rag_questions
+        if isinstance(item, AnsweredQuestion)
     }
 
     total_recall = 0.0
@@ -67,7 +72,7 @@ def run_evaluate(
         if question is None:
             continue
 
-        correct_sources = question["sources"]
+        correct_sources = question.sources
 
         if not correct_sources:
             continue
