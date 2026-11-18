@@ -13,7 +13,7 @@ def search_dataset(
     save_directory: str,
     k: int = 5,
     method: str = "lexical",
-    cache: bool = True,
+    cache: bool = False,
 ) -> Path:
     from .main import Retriever
 

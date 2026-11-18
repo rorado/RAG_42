@@ -1,11 +1,8 @@
 import os
-import pickle
-import tempfile
 from pathlib import Path
 from rich.console import Console
 from .answer_dataset import run_answer_dataset
 from .bm25 import BM25Search
-from .cache import QueryCache, index_signature
 from .chunk_loader import load_chunks
 from .chunking import Chunk, chunk_file, chunk_file_py, store_chunks
 from .evaluate import run_evaluate
@@ -22,7 +19,7 @@ console = Console()
 
 
 class Retriever:
-    def __init__(self, method: str = "lexical", cache: bool = True) -> None:
+    def __init__(self, method: str = "lexical", cache: bool = False) -> None:
         if method not in ("lexical", "semantic", "hybrid"):
             raise ValueError(f"Unknown method: {method}")
 
@@ -196,45 +193,11 @@ def index_embeddings(max_chunk_size: int = 2000,
     )
 
 
-def create_bm25(
-    cache: bool = True, store_path: str = "data/processed",
-) -> BM25Search:
-    """Load a reusable BM25 index, rebuilding stale or broken caches."""
-    folder = Path(store_path)
-    cache_path = folder / "cache_index.pkl"
-    signature = index_signature(folder / "chunks.json")
-    bm25: BM25Search | None = None
+def create_bm25(cache=False):
 
-    if cache:
-        try:
-            with cache_path.open("rb") as file:
-                saved = pickle.load(file)
-            if (isinstance(saved, tuple) and len(saved) == 2
-                    and saved[0] == signature
-                    and isinstance(saved[1], BM25Search)):
-                bm25 = saved[1]
-        except (OSError, ValueError, TypeError, EOFError,
-                pickle.PickleError, AttributeError, ImportError):
-            pass
+    bm25 = BM25Search(cache=cache)
+    bm25.index(load_chunks())
 
-    if bm25 is None:
-        bm25 = BM25Search()
-        bm25.index(load_chunks(store_path))
-        if cache:
-            try:
-                with tempfile.NamedTemporaryFile(
-                    dir=folder, delete=False,
-                ) as file:
-                    temporary = Path(file.name)
-                    pickle.dump((signature, bm25), file)
-                temporary.replace(cache_path)
-            except OSError:
-                pass
-
-    if cache:
-        bm25.query_cache = QueryCache(
-            folder / "query_cache.sqlite3", signature,
-        )
     return bm25
 
 
@@ -242,7 +205,7 @@ def search(
     query: str,
     k: int = 5,
     method: str = "lexical",
-    cache: bool = True,
+    cache: bool = False,
 ) -> None:
     if k <= 0:
         raise ValueError("k must be greater than 0")
@@ -264,7 +227,7 @@ def search_dataset(
     save_directory: str,
     k: int = 5,
     method: str = "lexical",
-    cache: bool = True,
+    cache: bool = False,
 ) -> None:
 
     if k <= 0:
@@ -284,7 +247,7 @@ def search_dataset(
     console.print(f"[green]Saved to:[/green] {output_path}")
 
 
-def answer(query: str, k: int = 5, cache: bool = True) -> None:
+def answer(query: str, k: int = 5, cache: bool = False) -> None:
 
     if k <= 0:
         raise ValueError("k must be greater than 0")

@@ -20,6 +20,13 @@ dependencies = [
 [project.scripts]
 rag = "rag:main"
 
+[tool.mypy]
+exclude = [
+    "^data/raw/",
+    "^.venv/",
+    "^tests/",
+]
+
 [build-system]
 requires = ["uv_build>=0.12.9,<0.13.0"]
 build-backend = "uv_build"
