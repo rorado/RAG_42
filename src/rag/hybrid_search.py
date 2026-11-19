@@ -39,7 +39,7 @@ class HybridSearch:
 
         ranked = sorted(
             rrf_res,
-            key=rrf_res.__getitem__,
+            key=lambda chunk_key: rrf_res[chunk_key],
             reverse=True,
         )
 

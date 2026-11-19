@@ -2,6 +2,8 @@ import hashlib
 import json
 from pathlib import Path
 
+from tqdm import tqdm
+
 
 def file_hash(path: Path) -> str:
     with open(path, "rb") as file:
@@ -9,14 +11,14 @@ def file_hash(path: Path) -> str:
 
 
 def detect_changes(
-    directory: str = "data/raw/vllm-0.10.1",
+    directory: str,
+    old_hashes: dict[str, str],
 ) -> tuple[list[Path], set[str], dict[str, str]]:
-    old_hashes = load_hashes()
-
     new_hashes = {}
 
     changed_files = []
-    for path in sorted(Path(directory).rglob("*")):
+    for path in tqdm(sorted(Path(directory).rglob("*")),
+                     desc="Checking for changes", unit="entry"):
         if not path.is_file():
             continue
 
@@ -36,29 +38,38 @@ def detect_changes(
 
 
 def load_hashes(
+    max_chunk_size: int,
+    chunks_mtime_ns: int,
     path: str = "data/processed/file_hashes.json",
-) -> dict[str, str]:
-    file_path = Path(path)
-
-    if not file_path.exists():
-        return {}
-    with open(file_path, "r", encoding="utf-8") as file:
-        try:
+) -> dict[str, str] | None:
+    try:
+        with open(path, "r", encoding="utf-8") as file:
             data = json.load(file)
-            if not isinstance(data, dict):
-                return {}
-            return {str(key): str(value) for key, value in data.items()}
-        except Exception:
-            print("chunks not found")
-            return {}
+    except (FileNotFoundError, ValueError):
+        return None
+
+    if (
+        isinstance(data, dict)
+        and data.get("max_chunk_size") == max_chunk_size
+        and data.get("chunks_mtime_ns") == chunks_mtime_ns
+        and isinstance(data.get("hashes"), dict)
+    ):
+        return {str(key): str(value) for key, value in data["hashes"].items()}
+    return None
 
 
 def save_hashes(
     hashes: dict[str, str],
+    max_chunk_size: int,
+    chunks_mtime_ns: int,
     path: str = "data/processed/file_hashes.json",
 ) -> None:
     file_path = Path(path)
     file_path.parent.mkdir(parents=True, exist_ok=True)
 
     with open(file_path, "w", encoding="utf-8") as file:
-        json.dump(hashes, file, indent=2)
+        json.dump({
+            "max_chunk_size": max_chunk_size,
+            "chunks_mtime_ns": chunks_mtime_ns,
+            "hashes": hashes,
+        }, file, indent=2)

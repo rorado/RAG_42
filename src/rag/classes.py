@@ -17,8 +17,6 @@ class UnansweredQuestion(BaseModel):
 class AnsweredQuestion(UnansweredQuestion):
     sources: list[MinimalSource]
     answer: str
-    difficulty: str | None = None
-    is_valid: bool | None = None
 
 
 class RagDataset(BaseModel):

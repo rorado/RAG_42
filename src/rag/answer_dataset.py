@@ -1,5 +1,7 @@
 from pathlib import Path
 
+from tqdm import tqdm
+
 from .classes import (
     MinimalAnswer,
     StudentSearchResults,
@@ -19,7 +21,8 @@ def run_answer_dataset(
     llm = LLM()
     answers: list[MinimalAnswer] = []
 
-    for item in data.search_results:
+    for item in tqdm(data.search_results, desc="Answering questions",
+                     unit="question"):
         question = item.question
         context_parts = []
 
@@ -32,10 +35,8 @@ def run_answer_dataset(
 
             context_parts.append(chunk_text)
 
-        # Combine all retrieved chunks
         context = "\n\n".join(context_parts)
 
-        # Generate answer using Qwen
         if context.strip():
             answer = llm.answer(question, context)
         else:

@@ -1,13 +1,14 @@
 import os
 from pathlib import Path
 from rich.console import Console
+from tqdm import tqdm
 from .answer_dataset import run_answer_dataset
 from .bm25 import BM25Search
 from .chunk_loader import load_chunks
 from .chunking import Chunk, chunk_file, chunk_file_py, store_chunks
 from .evaluate import run_evaluate
 from .hybrid_search import HybridSearch
-from .incremental import detect_changes, save_hashes
+from .incremental import detect_changes, load_hashes, save_hashes
 from .llm import LLM
 from .search_dataset import search_dataset as run_search_dataset
 from .semantic_search import Semantic
@@ -71,33 +72,35 @@ def incremental_index(
     directory: str = "data/raw/vllm-0.10.1",
     max_chunk_size: int = MAX_CHUNK_SIZE,
 ) -> None:
+    if max_chunk_size <= 0:
+        raise ValueError("max_chunk_size must be greater than 0")
+
     chunks_path = Path("data/processed/chunks.json")
+    try:
+        chunks_mtime_ns = chunks_path.stat().st_mtime_ns
+    except FileNotFoundError:
+        old_hashes = None
+    else:
+        old_hashes = load_hashes(max_chunk_size, chunks_mtime_ns)
 
-    changed_files, deleted_files, new_hashes = detect_changes(directory)
+    changed_files, deleted_files, new_hashes = detect_changes(
+        directory, old_hashes or {},
+    )
 
-    if not chunks_path.exists():
-        print("Chunks do not exist yet. Creating the index...")
-        index(max_chunk_size)
-        save_hashes(new_hashes)
-        return
-
-    if not changed_files and not deleted_files:
+    if old_hashes is None:
+        print("Rebuilding chunks for the requested maximum chunk size")
+        chunks: list[Chunk] = []
+    elif not changed_files and not deleted_files:
         print("No changes detected")
         return
+    else:
+        affected = {str(path) for path in changed_files} | deleted_files
+        chunks = [
+            chunk for chunk in load_chunks() if chunk.path not in affected
+        ]
 
-    old_chunks = load_chunks()
-
-    affected = {
-        str(path) for path in changed_files
-    } | set(deleted_files)
-
-    chunks = [
-        chunk
-        for chunk in old_chunks
-        if chunk.path not in affected
-    ]
-
-    for path in changed_files:
+    for path in tqdm(changed_files, desc="Chunking changed files",
+                     unit="file"):
         content = path.read_text(encoding="utf-8")
 
         if path.suffix == ".py":
@@ -120,7 +123,7 @@ def incremental_index(
 
     store_chunks(chunks, "data/processed")
 
-    save_hashes(new_hashes)
+    save_hashes(new_hashes, max_chunk_size, chunks_path.stat().st_mtime_ns)
 
     print(f"Changed/new files: {len(changed_files)}")
     print(f"Deleted files: {len(deleted_files)}")
@@ -132,33 +135,24 @@ def search_in_vllm_files(
     max_chunk_size: int = MAX_CHUNK_SIZE,
 ) -> list[Chunk]:
 
-    chunks_list: list[Chunk] = []
+    chunks: list[Chunk] = []
+    source_files = []
 
-    with os.scandir(dir) as entries:
-        for en in entries:
+    for root, dirs, files in os.walk(dir):
+        for filename in files:
+            if filename.endswith((".py", ".md")):
+                source_files.append(os.path.join(root, filename))
 
-            if en.is_dir():
-                chunks_list.extend(
-                    search_in_vllm_files(en.path, max_chunk_size)
-                )
+    # Chunk the files
+    for path in tqdm(source_files, desc="Chunking files", unit="file"):
+        with open(path, "r", encoding="utf-8") as file:
+            content = file.read()
 
-            elif en.is_file() and en.name.endswith(".py"):
-                with open(en.path, "r", encoding="utf-8") as file:
-                    content = file.read()
+        chunk_source = chunk_file_py if path.endswith(".py") else chunk_file
 
-                chunks_list.extend(
-                    chunk_file_py(content, en.path, max_chunk_size)
-                )
+        chunks.extend(chunk_source(content, path, max_chunk_size))
 
-            elif en.is_file() and en.name.endswith(".md"):
-                with open(en.path, "r", encoding="utf-8") as file:
-                    content = file.read()
-
-                chunks_list.extend(
-                    chunk_file(content, en.path, max_chunk_size)
-                )
-
-    return chunks_list
+    return chunks
 
 
 def index(max_chunk_size: int = 2000,

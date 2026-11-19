@@ -4,6 +4,8 @@ from rank_bm25 import BM25Okapi
 import pickle
 from pathlib import Path
 
+from tqdm import tqdm
+
 from .chunking import Chunk
 
 
@@ -61,7 +63,10 @@ class BM25Search:
                 self.bm25 = pickle.load(file)
             return
 
-        corpus = [tokenize(chunk.content) for chunk in chunks]
+        corpus = [
+            tokenize(chunk.content)
+            for chunk in tqdm(chunks, desc="Tokenizing chunks", unit="chunk")
+        ]
         self.bm25 = BM25Okapi(corpus) if corpus and any(corpus) else None
 
         if self.use_cache:

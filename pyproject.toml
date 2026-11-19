@@ -13,6 +13,7 @@ dependencies = [
     "rich>=14.0.0",
     "sentence-transformers>=6.1.0",
     "torch>=2.14.1",
+    "tqdm>=4.70.1",
     "transformers>=5.20.1",
     "uvicorn>=0.54.0",
 ]

@@ -14,7 +14,7 @@ class LLM:
         messages = [
             {
                 "role": "system",
-                "content": f"""
+                "content": """
                     Answer the user's question using only the provided context.
 
                     Use facts from only the context
@@ -27,15 +27,11 @@ class LLM:
                     - Do not invent unsupported facts.
                     - If no relevant information is available, say:
                     "The provided context does not contain enough information."
-
-
-                    Contexts:
-                        {context}
                 """
             },
             {
                 "role": "user",
-                "content": question
+                "content": f"Question:\n{question}\n\nContext:\n{context}"
             }
         ]
 

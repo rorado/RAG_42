@@ -1,5 +1,5 @@
 from contextlib import asynccontextmanager
-from collections.abc import AsyncIterator
+from collections.abc import AsyncGenerator
 from typing import Any
 
 from fastapi import FastAPI
@@ -20,7 +20,7 @@ class AnswerRequest(BaseModel):
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     bm25 = create_bm25()
     app.state.bm25 = bm25
     app.state.llm = LLM()

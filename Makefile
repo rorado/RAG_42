@@ -1,9 +1,9 @@
-
 PYTHON = uv run python -m src
 
 K ?= 5
 MAX_CHUNK_SIZE ?= 2000
-METHOD_SEARCH = lexical
+METHOD_SEARCH ?= lexical
+MOULINETTE ?= ./moulinette-ubuntu
 
 QUERY ?=
 HOST ?= 127.0.0.1
@@ -11,14 +11,12 @@ PORT ?= 8000
 
 DATASET_PATH ?= data/datasets/UnansweredQuestions/dataset_docs_public.json
 GROUND_TRUTH ?= data/datasets/AnsweredQuestions/dataset_docs_public.json
-VLLM_PATH  ?= data/raw/vllm-0.10.1
+VLLM_PATH ?= data/raw/vllm-0.10.1
 
+SEARCH_DIR_SAVE ?= data/output/search_results/UnansweredQuestions
+ANSWER_DIR_SAVE ?= data/output/search_results_and_answer/UnansweredQuestions
 
-
-SEARCH_DIR_SAVE ?= data/output/search_results/UnansweredQuestions/lexical
-ANSWER_DIR_SAVE ?= data/output/search_results/AnsweredQuestions/lexical
-
-SEARCH_RESULTS ?= $(SEARCH_DIR_SAVE)/$(notdir $(DATASET_PATH))
+SEARCH_RESULTS = $(SEARCH_DIR_SAVE)/$(notdir $(DATASET_PATH))
 
 
 .PHONY: help install index search search_dataset answer answer_dataset evaluate clean http_local run debug lint
@@ -79,6 +77,7 @@ answer_dataset:
 incremental_index:
 	$(PYTHON) incremental_index  --directory ${VLLM_PATH} --max_chunk_size $(MAX_CHUNK_SIZE)
 
+
 cache_query:
 	@test -n "$(QUERY)" || (echo "Error: QUERY is required" && exit 1)
 	$(PYTHON) search "$(QUERY)" --k $(K) --cache True
@@ -88,6 +87,13 @@ evaluate:
 		--student_search_results_path "$(SEARCH_RESULTS)" \
 		--dataset_path "$(GROUND_TRUTH)"
 
+
+moulinette:
+	$(MOULINETTE) evaluate_student_search_results \
+		"$(SEARCH_RESULTS)" \
+		"$(GROUND_TRUTH)" \
+		--k $(K) \
+		--max_context_length $(MAX_CHUNK_SIZE)
 
 clean:
 	rm -rf data/processed .mypy_cache .pytest_cache

@@ -1,4 +1,6 @@
 from pathlib import Path
+
+from tqdm import tqdm
 from .classes import (
     MinimalSearchResults,
     MinimalSource,
@@ -25,7 +27,8 @@ def search_dataset(
     retriever = Retriever(method, cache=cache)
     search_results = []
 
-    for item in dataset.rag_questions:
+    for item in tqdm(dataset.rag_questions, desc="Searching dataset",
+                     unit="question"):
         chunks = retriever.search(item.question, k)
 
         sources = [
