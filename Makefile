@@ -39,7 +39,7 @@ install:
 	uv sync
 
 http_local:
-	uv run uvicorn local_http.api:app --app-dir src --host $(HOST) --port $(PORT)
+	uv run uvicorn local_http.api:app --host $(HOST) --port $(PORT)
 
 
 index:
@@ -82,28 +82,26 @@ cache_query:
 	@test -n "$(QUERY)" || (echo "Error: QUERY is required" && exit 1)
 	$(PYTHON) search "$(QUERY)" --k $(K) --cache True
 
+
 evaluate:
 	$(PYTHON) evaluate \
 		--student_search_results_path "$(SEARCH_RESULTS)" \
 		--dataset_path "$(GROUND_TRUTH)"
 
 
-moulinette:
-	$(MOULINETTE) evaluate_student_search_results \
-		"$(SEARCH_RESULTS)" \
-		"$(GROUND_TRUTH)" \
-		--k $(K) \
-		--max_context_length $(MAX_CHUNK_SIZE)
 
 clean:
 	rm -rf data/processed .mypy_cache .pytest_cache
 	find src -type d -name __pycache__ -exec rm -rf {} +
 
+
 run:
 	$(PYTHON) $(ARGS)
 
+
 debug:
 	uv run python -m pdb -m src $(ARGS)
+
 
 lint:
 	uv run flake8 .
