@@ -72,8 +72,10 @@ def incremental_index(
     directory: str = "data/raw/vllm-0.10.1",
     max_chunk_size: int = MAX_CHUNK_SIZE,
 ) -> None:
-    if max_chunk_size <= 0:
-        raise ValueError("max_chunk_size must be greater than 0")
+    if not 1 <= max_chunk_size <= MAX_CHUNK_SIZE:
+        raise ValueError(
+            f"max_chunk_size must be between 1 and {MAX_CHUNK_SIZE}"
+        )
 
     chunks_path = Path("data/processed/chunks.json")
     try:
@@ -155,11 +157,13 @@ def search_in_vllm_files(
     return chunks
 
 
-def index(max_chunk_size: int = 2000,
+def index(max_chunk_size: int = MAX_CHUNK_SIZE,
           store_path: str = "data/processed",
           vllm_path: str = VLLM_PATH) -> None:
-    if max_chunk_size <= 0:
-        raise ValueError("max_chunk_size must be greater than 0")
+    if not 1 <= max_chunk_size <= MAX_CHUNK_SIZE:
+        raise ValueError(
+            f"max_chunk_size must be between 1 and {MAX_CHUNK_SIZE}"
+        )
 
     chunks = search_in_vllm_files(vllm_path, max_chunk_size)
 
@@ -170,11 +174,13 @@ def index(max_chunk_size: int = 2000,
     )
 
 
-def index_embeddings(max_chunk_size: int = 2000,
+def index_embeddings(max_chunk_size: int = MAX_CHUNK_SIZE,
                      vllm_path: str = VLLM_PATH,
                      store_path: str = "data/processed") -> None:
-    if max_chunk_size <= 0:
-        raise ValueError("max_chunk_size must be greater than 0")
+    if not 1 <= max_chunk_size <= MAX_CHUNK_SIZE:
+        raise ValueError(
+            f"max_chunk_size must be between 1 and {MAX_CHUNK_SIZE}"
+        )
 
     chunks = search_in_vllm_files(vllm_path, max_chunk_size)
     store_chunks(chunks, store_path)

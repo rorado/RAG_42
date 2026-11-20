@@ -1,4 +1,4 @@
-*This project has been created as part of the 42 curriculum by sohrich*
+*This project has been created as part of the 42 curriculum by sohrich.*
 
 # RAG against the Machine — RAG_42
 
@@ -102,7 +102,6 @@ From the repository root:
 uv sync
 ```
 
-Ensure the vLLM source files are present in the configured input directory before indexing.
 
 ### Running the application
 
